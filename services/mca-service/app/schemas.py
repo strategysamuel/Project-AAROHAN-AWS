@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 import datetime
 from typing import List, Optional
 
@@ -8,8 +8,7 @@ class MCADirectorResponse(BaseModel):
     full_name: str
     appointment_date: datetime.datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class MCAChargeResponse(BaseModel):
     id: int
@@ -19,8 +18,7 @@ class MCAChargeResponse(BaseModel):
     creation_date: datetime.datetime
     status: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class MCACompanyFilingResponse(BaseModel):
     id: int
@@ -28,8 +26,7 @@ class MCACompanyFilingResponse(BaseModel):
     filing_date: datetime.datetime
     status: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class MCACompanyProfileResponse(BaseModel):
     id: int
@@ -46,8 +43,7 @@ class MCACompanyProfileResponse(BaseModel):
     charges: List[MCAChargeResponse] = []
     filings: List[MCACompanyFilingResponse] = []
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class MCASyncRequest(BaseModel):
     cin: str = Field(..., pattern=r"^[U|L][0-9]{5}[A-Z]{2}[0-9]{4}[PTC][0-9]{6}$")

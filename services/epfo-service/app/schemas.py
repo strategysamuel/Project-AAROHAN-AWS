@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 import datetime
 from typing import List, Optional
 
@@ -10,8 +10,7 @@ class EPFOContributionResponse(BaseModel):
     payment_date: Optional[datetime.datetime]
     status: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class EPFOProfileResponse(BaseModel):
     id: int
@@ -25,8 +24,7 @@ class EPFOProfileResponse(BaseModel):
     last_synced_at: datetime.datetime
     contributions: List[EPFOContributionResponse] = []
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class EPFOSyncRequest(BaseModel):
     establishment_id: str = Field(..., pattern=r"^[A-Z]{5}[0-9]{7}[0-9]{3}[0-9]{7}$") # Standard 15-char code validation check

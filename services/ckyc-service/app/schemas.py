@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 import datetime
 from typing import List, Optional
 
@@ -12,8 +12,7 @@ class CKYCRecordResponse(BaseModel):
     kyc_status: str
     last_synced_at: datetime.datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class CKYCVerificationLogResponse(BaseModel):
     id: int
@@ -24,8 +23,7 @@ class CKYCVerificationLogResponse(BaseModel):
     verification_status: str
     verified_at: datetime.datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class CKYCSearchRequest(BaseModel):
     pan: str = Field(..., pattern=r"^[A-Z]{5}[0-9]{4}[A-Z]{1}$")
