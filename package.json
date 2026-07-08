@@ -1,0 +1,23 @@
+{
+  "name": "aarohan-monorepo",
+  "version": "1.0.0",
+  "description": "Enterprise Monorepo for Project AAROHAN Digital MSME Lending Platform",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "services/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,js,json,md,css}\""
+  },
+  "devDependencies": {
+    "turbo": "^1.10.0",
+    "prettier": "^2.8.8",
+    "typescript": "^5.0.4"
+  }
+}
