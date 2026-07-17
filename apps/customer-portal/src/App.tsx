@@ -237,7 +237,10 @@ const uiStore = createStore<UIState>((set, get) => ({
           department: 'Operations',
           branch: 'Mumbai HQ',
           avatar: '/assets/avatars/default.png',
-          permissions: ['read', 'write', 'admin']
+          permissions: [
+            'dashboard', 'customer_management', 'ckyc', 'gst', 'account_aggregator',
+            'epfo', 'mca', 'financial_health_card', 'credit_engine', 'cam', 'reports', 'settings'
+          ]
         },
         activePage: 'Dashboard'
       });
