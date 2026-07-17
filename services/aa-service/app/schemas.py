@@ -108,4 +108,4 @@ class LinkAccountRequest(BaseModel):
     account_type: str
 
 class SyncRequest(BaseModel):
-    consent_id: str
+    consent_id: str | int

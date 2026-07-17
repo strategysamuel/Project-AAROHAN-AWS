@@ -1,12 +1,13 @@
+from services.shared.database import Base
 import datetime
 from sqlalchemy import Column, String, Integer, DateTime, Boolean, ForeignKey, Float
-from sqlalchemy.orm import relationship, declarative_base
+from sqlalchemy.orm import relationship
 
-Base = declarative_base()
 
 class TReDSBuyer(Base):
     __tablename__ = "treds_buyers"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     buyer_pan = Column(String(10), unique=True, nullable=False, index=True)
     buyer_name = Column(String(200), nullable=False)
@@ -15,7 +16,8 @@ class TReDSBuyer(Base):
 
 class TReDSInvoice(Base):
     __tablename__ = "treds_invoices"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     customer_id = Column(Integer, nullable=False, index=True)
     invoice_number = Column(String(50), unique=True, nullable=False, index=True)

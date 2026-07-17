@@ -31,8 +31,9 @@ import {
   Summarize,
   Warning
 } from '@mui/icons-material';
+import { apiUrl } from '../lib/api';
 
-const API = 'http://localhost:8000';
+const API = apiUrl('');
 
 type CAMRecord = {
   id: number;

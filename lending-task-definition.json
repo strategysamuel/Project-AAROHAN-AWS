@@ -1,0 +1,82 @@
+{
+  "family": "lending-task-definition",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "2048",
+  "memory": "4096",
+  "executionRoleArn": "arn:aws:iam::905417996641:role/ecsTaskExecutionRole",
+  "containerDefinitions": [
+    {
+      "name": "lending-intelligence",
+      "image": "905417996641.dkr.ecr.ap-south-1.amazonaws.com/aarohan/lending:latest",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 9001,
+          "protocol": "tcp"
+        },
+        {
+          "containerPort": 9003,
+          "protocol": "tcp"
+        },
+        {
+          "containerPort": 9004,
+          "protocol": "tcp"
+        },
+        {
+          "containerPort": 9005,
+          "protocol": "tcp"
+        },
+        {
+          "containerPort": 9006,
+          "protocol": "tcp"
+        },
+        {
+          "containerPort": 9007,
+          "protocol": "tcp"
+        },
+        {
+          "containerPort": 9011,
+          "protocol": "tcp"
+        },
+        {
+          "containerPort": 9012,
+          "protocol": "tcp"
+        },
+        {
+          "containerPort": 9013,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        {
+          "name": "PYTHONPATH",
+          "value": "/app/services/ese-core"
+        },
+        {
+          "name": "INTEGRATION_PROFILE",
+          "value": "DEMO"
+        },
+        {
+          "name": "ACTIVE_DATASET",
+          "value": "msme"
+        }
+      ],
+      "healthCheck": {
+        "command": ["CMD-SHELL", "curl -f http://localhost:9001/livez || exit 1"],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 20
+      },
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/aarohan-lending",
+          "awslogs-region": "ap-south-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      }
+    }
+  ]
+}

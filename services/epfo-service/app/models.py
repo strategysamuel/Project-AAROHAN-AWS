@@ -1,12 +1,13 @@
+from services.shared.database import Base
 import datetime
 from sqlalchemy import Column, String, Integer, DateTime, Boolean, ForeignKey, Float, Text
-from sqlalchemy.orm import relationship, declarative_base
+from sqlalchemy.orm import relationship
 
-Base = declarative_base()
 
 class EPFOEstablishmentProfile(Base):
     __tablename__ = "epfo_profiles"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     customer_id = Column(Integer, unique=True, nullable=False, index=True)
     establishment_id = Column(String(50), unique=True, nullable=False, index=True) # 15-character EPFO Code
@@ -23,7 +24,8 @@ class EPFOEstablishmentProfile(Base):
 
 class EPFOContribution(Base):
     __tablename__ = "epfo_contributions"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     profile_id = Column(Integer, ForeignKey("epfo_profiles.id"), nullable=False)
     wage_month = Column(String(10), nullable=False) # e.g. "042025" (MMYYYY)
@@ -37,7 +39,8 @@ class EPFOContribution(Base):
 
 class EPFOEmployee(Base):
     __tablename__ = "epfo_employees"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     profile_id = Column(Integer, ForeignKey("epfo_profiles.id"), nullable=False)
     uan = Column(String(50), unique=True, nullable=False, index=True)
@@ -52,7 +55,8 @@ class EPFOEmployee(Base):
 
 class EPFOAnalytics(Base):
     __tablename__ = "epfo_analytics"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     profile_id = Column(Integer, ForeignKey("epfo_profiles.id"), nullable=False)
     active_employees = Column(Integer, default=0)

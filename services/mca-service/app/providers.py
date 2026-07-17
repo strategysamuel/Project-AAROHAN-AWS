@@ -2,7 +2,7 @@ import abc
 import datetime
 import os
 from typing import Dict, List, Any
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
 class MCAAdapter(abc.ABC):
@@ -33,14 +33,13 @@ class MCAAdapter(abc.ABC):
 
 class SimulationMCAAdapter(MCAAdapter):
     def fetch_company_profile(self, cin: str) -> Dict[str, Any]:
-        engine = create_engine("sqlite:///./aarohan_local.db")
-        SessionLocal = sessionmaker(bind=engine)
+        from app.database import SessionLocal
         db = SessionLocal()
         try:
             row = db.execute(
-                "SELECT c.legal_name, b.trade_name, b.constitution_type "
+                text("SELECT c.legal_name, b.trade_name, b.constitution_type "
                 "FROM onboarding_businesses b JOIN onboarding_customers c ON b.customer_id = c.id "
-                "WHERE b.cin = :cin LIMIT 1", {"cin": cin}
+                "WHERE b.cin = :cin LIMIT 1"), {"cin": cin}
             ).fetchone()
             if row:
                 return {

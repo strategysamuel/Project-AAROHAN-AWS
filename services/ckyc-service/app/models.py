@@ -1,12 +1,13 @@
+from services.shared.database import Base
 import datetime
 from sqlalchemy import Column, String, Integer, DateTime, Boolean, ForeignKey, Float, Text
-from sqlalchemy.orm import relationship, declarative_base
+from sqlalchemy.orm import relationship
 
-Base = declarative_base()
 
 class CKYCRecord(Base):
     __tablename__ = "ckyc_records"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     customer_id = Column(Integer, unique=True, nullable=False, index=True)
     ckyc_number = Column(String(50), unique=True, nullable=False, index=True) # 14-digit CKYC Identifier
@@ -23,7 +24,8 @@ class CKYCRecord(Base):
 
 class CKYCVerificationLog(Base):
     __tablename__ = "ckyc_verification_logs"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     customer_id = Column(Integer, nullable=False, index=True)
     checked_by = Column(String(100), nullable=False) # RM staff ID or "SYSTEM"
@@ -37,7 +39,8 @@ class CKYCVerificationLog(Base):
 # Mapping to Onboarding tables in the shared database
 class OnboardingCustomer(Base):
     __tablename__ = "onboarding_customers"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     legal_name = Column(String(200), nullable=False)
     mobile_number = Column(String(15), nullable=False)
@@ -51,7 +54,8 @@ class OnboardingCustomer(Base):
 
 class OnboardingAddress(Base):
     __tablename__ = "onboarding_addresses"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     customer_id = Column(Integer, nullable=False)
     address_line1 = Column(String(255), nullable=False)

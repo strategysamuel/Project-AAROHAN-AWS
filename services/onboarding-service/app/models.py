@@ -1,12 +1,13 @@
+from services.shared.database import Base
 import datetime
 from sqlalchemy import Column, String, Integer, DateTime, Boolean, ForeignKey, Table, Float
-from sqlalchemy.orm import relationship, declarative_base
+from sqlalchemy.orm import relationship
 
-Base = declarative_base()
 
 class Customer(Base):
     __tablename__ = "onboarding_customers"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     legal_name = Column(String(200), nullable=False)
     mobile_number = Column(String(15), unique=True, nullable=False, index=True)
@@ -28,7 +29,8 @@ class Customer(Base):
 
 class BusinessEntity(Base):
     __tablename__ = "onboarding_businesses"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     customer_id = Column(Integer, ForeignKey("onboarding_customers.id"), nullable=False)
     trade_name = Column(String(200), nullable=False)
@@ -48,7 +50,8 @@ class BusinessEntity(Base):
 
 class ProprietorDirector(Base):
     __tablename__ = "onboarding_directors"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     business_id = Column(Integer, ForeignKey("onboarding_businesses.id"), nullable=False)
     full_name = Column(String(150), nullable=False)
@@ -60,7 +63,8 @@ class ProprietorDirector(Base):
 
 class Address(Base):
     __tablename__ = "onboarding_addresses"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     customer_id = Column(Integer, ForeignKey("onboarding_customers.id"), nullable=False)
     address_line1 = Column(String(255), nullable=False)
@@ -76,7 +80,8 @@ class Address(Base):
 class OnboardingDocument(Base):
     """Tracks simulated document uploads per customer."""
     __tablename__ = "onboarding_documents"
-
+    __table_args__ = {'extend_existing': True}
+    
     id = Column(Integer, primary_key=True, index=True)
     customer_id = Column(Integer, ForeignKey("onboarding_customers.id"), nullable=False)
     doc_type = Column(String(50), nullable=False)   # PAN, AADHAAR, GST_CERT, UDYAM, BANK_STMT, FINANCIALS, COI

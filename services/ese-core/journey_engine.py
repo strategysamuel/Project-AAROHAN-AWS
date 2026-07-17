@@ -3,7 +3,7 @@ import os
 import time
 import uuid
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, List, Any, Optional
 
 # Bootstrap virtualenv
@@ -106,7 +106,7 @@ class DemoJourneyEngine:
         timeline = []
         
         def log_step(step_name: str, status: str, details: Optional[str] = None):
-            timestamp = datetime.utcnow().isoformat() + "Z"
+            timestamp = datetime.now(timezone.utc).isoformat()
             audit_log.append({
                 "timestamp": timestamp,
                 "step": step_name,

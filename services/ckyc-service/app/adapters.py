@@ -1,6 +1,7 @@
 import os
 from abc import ABC, abstractmethod
 from typing import Dict, Any
+from sqlalchemy import text
 
 class CKYCAdapter(ABC):
     @abstractmethod
@@ -9,17 +10,14 @@ class CKYCAdapter(ABC):
 
 class DemoDatasetAdapter(CKYCAdapter):
     def fetch_record(self, pan: str) -> Dict[str, Any]:
-        from sqlalchemy import create_engine
-        from sqlalchemy.orm import sessionmaker
+        from app.database import SessionLocal
         
-        # Connect to the local shared database
-        engine = create_engine("sqlite:///./aarohan_local.db")
-        SessionLocal = sessionmaker(bind=engine)
+        # Connect to the shared database
         db = SessionLocal()
         try:
             # Query the ESE CKYC simulation table directly
             res = db.execute(
-                "SELECT ckyc_number, full_name, dob, pan, kyc_status FROM ese_ckyc_records WHERE pan = :pan", 
+                text("SELECT ckyc_number, full_name, dob, pan, kyc_status FROM ese_ckyc_records WHERE pan = :pan"),
                 {"pan": pan}
             ).fetchone()
             if res:
@@ -35,13 +33,14 @@ class DemoDatasetAdapter(CKYCAdapter):
         finally:
             db.close()
             
+        import random
         # Fallback default mock
         return {
-            "ckyc_number": "30049281726354",
-            "full_name": "Aditya Patel",
+            "ckyc_number": f"30049{random.randint(100000000, 999999999)}",
+            "full_name": "Project AAROHAN MSME Customer",
             "dob": "12-08-1988",
             "pan": pan,
-            "kyc_status": "VERIFIED"
+            "kyc_status": "CLEAN"
         }
 
 class SandboxCKYCAdapter(CKYCAdapter):

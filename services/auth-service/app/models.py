@@ -1,8 +1,8 @@
+from services.shared.database import Base
 import datetime
 from sqlalchemy import Column, String, Integer, DateTime, Boolean, ForeignKey, Table
-from sqlalchemy.orm import relationship, declarative_base
+from sqlalchemy.orm import relationship
 
-Base = declarative_base()
 
 # Many-to-many relationship helper table for Role and Permission
 role_permissions = Table(
@@ -14,14 +14,16 @@ role_permissions = Table(
 
 class Permission(Base):
     __tablename__ = "permissions"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(100), unique=True, nullable=False, index=True) # e.g. "loan:create", "loan:approve"
     description = Column(String(255), nullable=True)
 
 class Role(Base):
     __tablename__ = "roles"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(50), unique=True, nullable=False, index=True) # e.g. "RELATIONSHIP_MANAGER", "CUSTOMER"
     description = Column(String(255), nullable=True)
@@ -30,7 +32,8 @@ class Role(Base):
 
 class User(Base):
     __tablename__ = "users"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String(50), unique=True, nullable=True, index=True)
     mobile_number = Column(String(15), unique=True, nullable=False, index=True)
@@ -50,7 +53,8 @@ class User(Base):
 
 class RefreshToken(Base):
     __tablename__ = "refresh_tokens"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     token = Column(String(255), unique=True, nullable=False, index=True)

@@ -223,9 +223,7 @@ const CustomerOnboardingPage: React.FC = () => {
           ...fallback.business
         }));
         setSuccess(`✓ Persona loaded from local dataset: ${personaName}`);
-      } else {
-        setError('Persona not found. Check Simulation Dataset.');
-      }
+      } else { throw new Error(); }
     }
     setPersonaLoading(false);
   };

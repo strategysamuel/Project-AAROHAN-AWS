@@ -2,7 +2,7 @@ import abc
 import datetime
 import os
 from typing import Dict, List, Any
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
 class EPFOAdapter(abc.ABC):
@@ -23,14 +23,13 @@ class EPFOAdapter(abc.ABC):
 
 class SimulationEPFOAdapter(EPFOAdapter):
     def fetch_establishment_profile(self, establishment_id: str) -> Dict[str, Any]:
-        engine = create_engine("sqlite:///./aarohan_local.db")
-        SessionLocal = sessionmaker(bind=engine)
+        from app.database import SessionLocal
         db = SessionLocal()
         try:
             row = db.execute(
-                "SELECT c.legal_name, b.trade_name, b.employees_count "
+                text("SELECT c.legal_name, b.trade_name, b.employees_count "
                 "FROM onboarding_businesses b JOIN onboarding_customers c ON b.customer_id = c.id "
-                "WHERE b.industry_segment LIKE '%Textile%' or b.trade_name LIKE '%Priya%' LIMIT 1"
+                "WHERE b.industry_segment LIKE '%Textile%' or b.trade_name LIKE '%Priya%' LIMIT 1")
             ).fetchone()
             if row:
                 return {
@@ -66,10 +65,11 @@ class SimulationEPFOAdapter(EPFOAdapter):
             "Arjun Mehta", "Kiran Shah", "Rohan Roy"
         ]
         
+        import random
         base_date = datetime.datetime(2021, 6, 15)
         for i, name in enumerate(names):
             employees.append({
-                "uan": f"10098{3726 + i}",
+                "uan": f"10098{random.randint(10000, 99999)}{i}",
                 "name": name,
                 "joining_date": base_date + datetime.timedelta(days=i * 20),
                 "exit_date": None if i != 4 and i != 9 else base_date + datetime.timedelta(days=i * 50 + 100),

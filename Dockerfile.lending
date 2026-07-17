@@ -1,0 +1,42 @@
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install poetry
+RUN pip install --no-cache-dir poetry
+
+# Configure poetry
+RUN poetry config virtualenvs.create false
+
+# Copy dependency files
+COPY pyproject.toml /app/
+
+# Install dependencies
+RUN poetry install --no-interaction --no-ansi --only main --no-root
+
+# Copy application
+COPY . /app/
+
+# Set environment
+ENV PYTHONPATH="/app/services/ese-core"
+ENV INTEGRATION_PROFILE="DEMO"
+ENV ACTIVE_DATASET="msme"
+
+# Copy startup script
+COPY start-lending-intelligence.sh /app/start-lending-intelligence.sh
+RUN chmod +x /app/start-lending-intelligence.sh
+
+# Health check for onboarding-service
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD curl -f http://localhost:9001/livez || exit 1
+
+# Expose ports
+EXPOSE 9001 9002 9003 9004 9005 9006 9007 9008 9011 9012 9013 9014
+
+CMD ["/app/start-lending-intelligence.sh"]

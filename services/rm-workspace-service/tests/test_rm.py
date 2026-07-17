@@ -16,7 +16,7 @@ def test_rm_workspace_crud_and_intelligence():
         "customer_id": 120,
         "title": "Call Aditya regarding GST delay",
         "description": "GST return was delayed by 5 days.",
-        "due_date": (datetime.datetime.utcnow() + datetime.timedelta(days=1)).isoformat(),
+        "due_date": (datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=1)).isoformat(),
         "priority": "HIGH"
     }
     create_task = client.post("/rm/tasks", json=task_payload)

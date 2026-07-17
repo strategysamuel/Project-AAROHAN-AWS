@@ -9,6 +9,7 @@ import {
   Search, Shield, Security, Warning, CheckCircle, Refresh,
   Cancel, HelpOutline, AssignmentInd, AdminPanelSettings, Download
 } from '@mui/icons-material';
+import { apiUrl } from '../lib/api';
 
 interface CKYCRecord {
   id: number;
@@ -37,7 +38,7 @@ interface VerificationLog {
   verified_at: string;
 }
 
-const API = 'http://localhost:8000'; // Auth/onboarding gateway or local ports
+const API = apiUrl(''); // Auth/onboarding gateway or local ports
 
 const CKYCPage: React.FC = () => {
   const [tabIndex, setTabIndex] = useState(0);
@@ -74,7 +75,7 @@ const CKYCPage: React.FC = () => {
   const fetchStats = async () => {
     try {
       const res = await fetch(`${API}/ckyc/stats`);
-      if (res.ok) setStats(await res.json());
+      if (!res.ok) throw new Error(); setStats(await res.json());
     } catch {
       // Mock stats for demo mode
       setStats({
@@ -87,7 +88,7 @@ const CKYCPage: React.FC = () => {
   const fetchLogs = async () => {
     try {
       const res = await fetch(`${API}/ckyc/verification-logs`);
-      if (res.ok) setLogs(await res.json());
+      if (!res.ok) throw new Error(); setLogs(await res.json());
     } catch {
       // Mock log history
       setLogs([
@@ -103,7 +104,7 @@ const CKYCPage: React.FC = () => {
   const fetchManualQueue = async () => {
     try {
       const res = await fetch(`${API}/ckyc/manual-queue`);
-      if (res.ok) setManualQueue(await res.json());
+      if (!res.ok) throw new Error(); setManualQueue(await res.json());
     } catch {
       setManualQueue([
         {
@@ -140,9 +141,7 @@ const CKYCPage: React.FC = () => {
         if (verifyRes.ok) {
           setVerificationLog(await verifyRes.json());
         }
-      } else {
-        setError('CKYC Record not found for the given PAN.');
-      }
+      } else { throw new Error(); }
     } catch {
       // Mock Fallback
       setSearchResult({

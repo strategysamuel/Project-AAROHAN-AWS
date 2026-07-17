@@ -177,7 +177,7 @@ async def list_purposes(db: Session = Depends(get_db)):
 async def check_expiries(db: Session = Depends(get_db)):
     """Automated cron checking and changing status for expired records"""
     logger.info("AUDIT | Running consent expiry scan scheduler")
-    now = datetime.datetime.utcnow()
+    now = datetime.datetime.now(datetime.UTC)
     
     expired_records = db.query(Consent).filter(
         Consent.status == "APPROVED",

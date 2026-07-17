@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 import datetime
 from typing import List, Optional
 
@@ -9,8 +9,7 @@ class EWSWatchlistResponse(BaseModel):
     added_at: datetime.datetime
     reason_code: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class EWSAlertResponse(BaseModel):
     id: int
@@ -20,8 +19,7 @@ class EWSAlertResponse(BaseModel):
     created_at: datetime.datetime
     is_active: bool
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class EWSRiskCaseResponse(BaseModel):
     id: int
@@ -31,8 +29,7 @@ class EWSRiskCaseResponse(BaseModel):
     mitigation_action: Optional[str]
     updated_at: datetime.datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class EscalationRequest(BaseModel):
     comments: str

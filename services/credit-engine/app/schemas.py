@@ -1,4 +1,4 @@
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, ConfigDict
 import datetime
 from typing import List, Optional, Dict, Any
 
@@ -9,8 +9,7 @@ class HumanApprovalLogResponse(BaseModel):
     comments: Optional[str]
     signed_at: datetime.datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class AICreditDecisionResponse(BaseModel):
     id: int
@@ -82,8 +81,7 @@ class AICreditDecisionResponse(BaseModel):
             return [x.strip() for x in v.split(",") if x.strip()]
         return v or []
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class EvaluationRequest(BaseModel):
     customer_id: int

@@ -18,8 +18,7 @@ class GSTNAdapter(abc.ABC):
 
 class SimulationGSTNAdapter(GSTNAdapter):
     def fetch_gst_profile(self, gstin: str) -> Dict[str, Any]:
-        engine = create_engine("sqlite:///./aarohan_local.db")
-        SessionLocal = sessionmaker(bind=engine)
+        from app.database import SessionLocal
         db = SessionLocal()
         try:
             row = db.execute(
@@ -54,8 +53,7 @@ class SimulationGSTNAdapter(GSTNAdapter):
         }
 
     def fetch_return_filing_history(self, gstin: str) -> List[Dict[str, Any]]:
-        engine = create_engine("sqlite:///./aarohan_local.db")
-        SessionLocal = sessionmaker(bind=engine)
+        from app.database import SessionLocal
         db = SessionLocal()
         returns = []
         try:

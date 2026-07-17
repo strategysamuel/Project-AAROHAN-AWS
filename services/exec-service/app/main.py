@@ -163,7 +163,7 @@ def _executive_snapshot(db: Session) -> Dict[str, Any]:
         "fraud_alerts": fraud_alerts or 7,
         "active_users": active_users,
         "system_health": round(_pct(healthy_services, len(SERVICE_REGISTRY)), 2),
-        "last_refreshed_at": datetime.datetime.utcnow().isoformat() + "Z",
+        "last_refreshed_at": datetime.datetime.now(datetime.UTC).isoformat(),
     }
 
 
@@ -228,8 +228,8 @@ def _journey_rows(db: Session, limit: int) -> List[Dict[str, Any]]:
             "current_stage": current_stage,
             "completion_percentage": percent,
             "completed_stages": completed,
-            "started_at": (datetime.datetime.utcnow() - datetime.timedelta(hours=customer_id % 48 + 2)).isoformat() + "Z",
-            "last_updated_at": datetime.datetime.utcnow().isoformat() + "Z",
+            "started_at": (datetime.datetime.now(datetime.UTC) - datetime.timedelta(hours=customer_id % 48 + 2)).isoformat(),
+            "last_updated_at": datetime.datetime.now(datetime.UTC).isoformat(),
             "duration_minutes": int((customer_id % 7 + 1) * 18),
         })
     return journeys
@@ -369,7 +369,7 @@ def await_ai_payload(db: Session) -> Dict[str, Any]:
 
 
 def await_operations_payload(db: Session) -> List[Dict[str, Any]]:
-    now = datetime.datetime.utcnow()
+    now = datetime.datetime.now(datetime.UTC)
     rows = []
     for index, (name, table, profile) in enumerate(SERVICE_REGISTRY):
         healthy = table in ("workflow_engine", "event_engine", "dataset_generator") or _table_exists(db, table)
@@ -393,9 +393,9 @@ def await_activity_payload(db: Session, limit: int) -> List[Dict[str, Any]]:
         feed.extend(_rows(db, "SELECT created_at AS timestamp, 'Fraud check completed' AS event, risk_level AS detail, customer_id FROM rbi_fraud_records ORDER BY id DESC LIMIT :limit", limit=limit))
     if not feed:
         feed = [
-            {"timestamp": datetime.datetime.utcnow().isoformat() + "Z", "event": "New application", "detail": "AAR-APP-00101", "customer_id": 101},
-            {"timestamp": datetime.datetime.utcnow().isoformat() + "Z", "event": "CKYC completed", "detail": "Verified", "customer_id": 101},
-            {"timestamp": datetime.datetime.utcnow().isoformat() + "Z", "event": "CAM generated", "detail": "CAM-DEMO", "customer_id": 101},
+            {"timestamp": datetime.datetime.now(datetime.UTC).isoformat(), "event": "New application", "detail": "AAR-APP-00101", "customer_id": 101},
+            {"timestamp": datetime.datetime.now(datetime.UTC).isoformat(), "event": "CKYC completed", "detail": "Verified", "customer_id": 101},
+            {"timestamp": datetime.datetime.now(datetime.UTC).isoformat(), "event": "CAM generated", "detail": "CAM-DEMO", "customer_id": 101},
         ]
     return sorted(feed, key=lambda item: str(item.get("timestamp") or ""), reverse=True)[:limit]
 
@@ -481,7 +481,7 @@ async def generate_executive_report(report_type: str, db: Session = Depends(get_
     return {
         "report_id": f"EXEC-{report_type.upper()}-{uuid.uuid4().hex[:8].upper()}",
         "report_type": report_type,
-        "generated_at": datetime.datetime.utcnow().isoformat() + "Z",
+        "generated_at": datetime.datetime.now(datetime.UTC).isoformat(),
         "summary": f"{report_type.replace('-', ' ').title()} generated for {snapshot['total_loan_applications']} applications.",
         "download_format": "JSON",
         "data": snapshot,

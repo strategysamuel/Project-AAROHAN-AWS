@@ -35,8 +35,9 @@ import {
   Timeline,
   Warning
 } from '@mui/icons-material';
+import { apiUrl } from '../lib/api';
 
-const API = 'http://localhost:8000';
+const API = apiUrl('');
 
 type AnyRecord = Record<string, any>;
 
@@ -279,7 +280,7 @@ const ChartBlock: React.FC<{ title: string; items: AnyRecord[]; labelKey?: strin
               <Typography variant="caption" fontWeight="bold">{item[valueKey]}</Typography>
             </Stack>
             <Box sx={{ height: 8, bgcolor: 'rgba(255,255,255,0.07)', borderRadius: 1, overflow: 'hidden' }}>
-              <Box sx={{ width: `${((Number(item[valueKey]) || 0) / max) * 100}%`, height: 1, bgcolor: idx % 2 ? 'secondary.main' : 'primary.main' }} />
+              <Box sx={{ width: `${((Number(item[valueKey]) || 0) / max) * 100}%`, height: '100%', bgcolor: idx % 2 ? 'secondary.main' : 'primary.main' }} />
             </Box>
           </Box>
         ))}

@@ -1,12 +1,13 @@
+from services.shared.database import Base
 import datetime
 from sqlalchemy import Column, String, Integer, DateTime, Boolean, ForeignKey, Float, Text
-from sqlalchemy.orm import relationship, declarative_base
+from sqlalchemy.orm import relationship
 
-Base = declarative_base()
 
 class RBIFraudRecord(Base):
     __tablename__ = "rbi_fraud_records"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     customer_id = Column(Integer, nullable=False, index=True)
     entity_type = Column(String(50), default="CUSTOMER") # CUSTOMER, BUSINESS, PAN, GSTIN, DIRECTOR, ACCOUNT
@@ -29,7 +30,8 @@ class RBIFraudRecord(Base):
 
 class FraudWatchlist(Base):
     __tablename__ = "rbi_fraud_watchlist"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     watchlist_type = Column(String(50), nullable=False) # PAN, GSTIN, ACCOUNT, DIRECTOR, CUSTOMER, BUSINESS
     value = Column(String(100), unique=True, nullable=False, index=True)
@@ -38,7 +40,8 @@ class FraudWatchlist(Base):
 
 class FraudServiceConfig(Base):
     __tablename__ = "rbi_fraud_config"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     active_adapter = Column(String(100), default="SIMULATION") # SIMULATION, SANDBOX, PRODUCTION
     rule_parameters = Column(Text, nullable=True) # JSON string
@@ -51,6 +54,7 @@ class FraudServiceConfig(Base):
 class OnboardingCustomer(Base):
     __tablename__ = "onboarding_customers"
     __table_args__ = {'extend_existing': True}
+    {'extend_existing': True}
     id = Column(Integer, primary_key=True)
     legal_name = Column(String)
     mobile_number = Column(String)
@@ -60,6 +64,7 @@ class OnboardingCustomer(Base):
 class OnboardingBusiness(Base):
     __tablename__ = "onboarding_businesses"
     __table_args__ = {'extend_existing': True}
+    {'extend_existing': True}
     id = Column(Integer, primary_key=True)
     customer_id = Column(Integer)
     trade_name = Column(String)
@@ -69,6 +74,7 @@ class OnboardingBusiness(Base):
 class CKYCVerificationLog(Base):
     __tablename__ = "ckyc_verification_logs"
     __table_args__ = {'extend_existing': True}
+    {'extend_existing': True}
     id = Column(Integer, primary_key=True)
     customer_id = Column(Integer)
     match_confidence = Column(Float)
@@ -77,6 +83,7 @@ class CKYCVerificationLog(Base):
 class AAAnalytics(Base):
     __tablename__ = "aa_analytics"
     __table_args__ = {'extend_existing': True}
+    {'extend_existing': True}
     id = Column(Integer, primary_key=True)
     customer_id = Column(Integer)
     cheque_bounce_indicator = Column(Boolean)
@@ -85,6 +92,7 @@ class AAAnalytics(Base):
 class MCAGovernanceAnalytics(Base):
     __tablename__ = "mca_governance_analytics"
     __table_args__ = {'extend_existing': True}
+    {'extend_existing': True}
     id = Column(Integer, primary_key=True)
     company_id = Column(Integer)
     overall_risk_level = Column(String)

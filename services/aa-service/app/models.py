@@ -1,12 +1,13 @@
+from services.shared.database import Base
 import datetime
 from sqlalchemy import Column, String, Integer, DateTime, Boolean, ForeignKey, Float, Text
-from sqlalchemy.orm import relationship, declarative_base
+from sqlalchemy.orm import relationship
 
-Base = declarative_base()
 
 class LinkedAccount(Base):
     __tablename__ = "aa_linked_accounts"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     customer_id = Column(Integer, nullable=False, index=True)
     account_ref_num = Column(String(100), unique=True, nullable=False, index=True) # e.g. "SB-100293"
@@ -22,7 +23,8 @@ class LinkedAccount(Base):
 
 class AATransaction(Base):
     __tablename__ = "aa_transactions"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     account_id = Column(Integer, ForeignKey("aa_linked_accounts.id"), nullable=False)
     txn_ref_num = Column(String(100), unique=True, nullable=False, index=True)
@@ -37,7 +39,8 @@ class AATransaction(Base):
 
 class AAAnalytics(Base):
     __tablename__ = "aa_analytics"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     customer_id = Column(Integer, nullable=False, unique=True, index=True)
     total_inflow = Column(Float, default=0.0)
@@ -83,7 +86,8 @@ class AAAnalytics(Base):
 
 class AAConsent(Base):
     __tablename__ = "aa_consents"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     customer_id = Column(Integer, nullable=False, index=True)
     consent_artefact_id = Column(String(100), unique=True, nullable=False, index=True)

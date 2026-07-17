@@ -1,0 +1,304 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: AAROHAN ECS Fargate networking stack with ALB, target groups, listener
+  rules, and services.
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Default: vpc-0baaf3e2126716d7b
+    Description: Default VPC for the AAROHAN deployment.
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet::Id
+    Default: subnet-0141a9891144668a6
+    Description: Public subnet in one Availability Zone.
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet::Id
+    Default: subnet-0b9376d5213679d1e
+    Description: Public subnet in a different Availability Zone.
+  PublicSubnet3:
+    Type: AWS::EC2::Subnet::Id
+    Default: subnet-0f673f54c411f4dca
+    Description: Optional third public subnet for ECS services.
+  ClusterName:
+    Type: String
+    Default: aarohan-hackathon-cluster
+  IdentityTaskDefinition:
+    Type: String
+    Default: arn:aws:ecs:ap-south-1:905417996641:task-definition/identity-task-definition:1
+    Description: Existing ECS task definition family or ARN for identity.
+  LendingTaskDefinition:
+    Type: String
+    Default: arn:aws:ecs:ap-south-1:905417996641:task-definition/lending-task-definition:1
+    Description: Existing ECS task definition family or ARN for lending.
+  ExecutiveTaskDefinition:
+    Type: String
+    Default: arn:aws:ecs:ap-south-1:905417996641:task-definition/executive-task-definition:1
+    Description: Existing ECS task definition family or ARN for executive.
+Resources:
+  AlbSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: AAROHAN ALB security group
+      GroupName: aarohan-alb-sg
+      VpcId: !Ref 'VpcId'
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 80
+        ToPort: 80
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: tcp
+        FromPort: 443
+        ToPort: 443
+        CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+      - IpProtocol: -1
+        CidrIp: 0.0.0.0/0
+  EcsIdentitySecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: AAROHAN ECS identity security group
+      GroupName: aarohan-ecs-identity-sg
+      VpcId: !Ref 'VpcId'
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 9000
+        ToPort: 9000
+        SourceSecurityGroupId: !Ref 'AlbSecurityGroup'
+      SecurityGroupEgress:
+      - IpProtocol: -1
+        CidrIp: 0.0.0.0/0
+  EcsPlatformSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: AAROHAN ECS platform security group
+      GroupName: aarohan-ecs-platform-sg
+      VpcId: !Ref 'VpcId'
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 9001
+        ToPort: 9001
+        SourceSecurityGroupId: !Ref 'AlbSecurityGroup'
+      - IpProtocol: tcp
+        FromPort: 9009
+        ToPort: 9009
+        SourceSecurityGroupId: !Ref 'AlbSecurityGroup'
+      - IpProtocol: tcp
+        FromPort: 80
+        ToPort: 80
+        SourceSecurityGroupId: !Ref 'AlbSecurityGroup'
+      - IpProtocol: tcp
+        FromPort: 9010
+        ToPort: 9010
+        SourceSecurityGroupId: !Ref 'AlbSecurityGroup'
+      SecurityGroupEgress:
+      - IpProtocol: -1
+        CidrIp: 0.0.0.0/0
+  ApplicationLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: aarohan-alb
+      Type: application
+      Scheme: internet-facing
+      IpAddressType: ipv4
+      Subnets:
+      - !Ref 'PublicSubnet1'
+      - !Ref 'PublicSubnet2'
+      SecurityGroups:
+      - !Ref 'AlbSecurityGroup'
+  IdentityTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Port: 9000
+      Protocol: HTTP
+      TargetType: ip
+      VpcId: !Ref 'VpcId'
+      HealthCheckEnabled: true
+      HealthCheckPath: /livez
+      HealthCheckProtocol: HTTP
+      Matcher:
+        HttpCode: 200
+  LendingTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Port: 80
+      Protocol: HTTP
+      TargetType: ip
+      VpcId: !Ref 'VpcId'
+      HealthCheckEnabled: true
+      HealthCheckPath: /livez
+      HealthCheckProtocol: HTTP
+      Matcher:
+        HttpCode: 200
+      HealthCheckPort: '80'
+  ExecutiveTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Port: 9009
+      Protocol: HTTP
+      TargetType: ip
+      VpcId: !Ref 'VpcId'
+      HealthCheckEnabled: true
+      HealthCheckPath: /livez
+      HealthCheckProtocol: HTTP
+      Matcher:
+        HttpCode: 200
+  HttpListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref 'ApplicationLoadBalancer'
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+      - Type: forward
+        TargetGroupArn: !Ref 'IdentityTargetGroup'
+  AuthPathRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      ListenerArn: !Ref 'HttpListener'
+      Priority: 10
+      Conditions:
+      - Field: path-pattern
+        Values:
+        - /auth/*
+      Actions:
+      - Type: forward
+        TargetGroupArn: !Ref 'IdentityTargetGroup'
+  ApiPathRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      ListenerArn: !Ref 'HttpListener'
+      Priority: 20
+      Conditions:
+      - Field: path-pattern
+        Values:
+        - /api/*
+      Actions:
+      - Type: forward
+        TargetGroupArn: !Ref 'LendingTargetGroup'
+  ExecPathRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      ListenerArn: !Ref 'HttpListener'
+      Priority: 30
+      Conditions:
+      - Field: path-pattern
+        Values:
+        - /exec/*
+      Actions:
+      - Type: forward
+        TargetGroupArn: !Ref 'ExecutiveTargetGroup'
+  IdentityService:
+    Type: AWS::ECS::Service
+    DependsOn:
+    - HttpListener
+    - AuthPathRule
+    Properties:
+      Cluster:
+        Fn::Sub: arn:aws:ecs:${AWS::Region}:${AWS::AccountId}:cluster/${ClusterName}
+      LaunchType: FARGATE
+      DesiredCount: 1
+      TaskDefinition: !Ref 'IdentityTaskDefinition'
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          Subnets:
+          - !Ref 'PublicSubnet1'
+          - !Ref 'PublicSubnet2'
+          SecurityGroups:
+          - !Ref 'EcsIdentitySecurityGroup'
+      LoadBalancers:
+      - ContainerName: identity-platform
+        ContainerPort: 9000
+        TargetGroupArn: !Ref 'IdentityTargetGroup'
+      HealthCheckGracePeriodSeconds: 60
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 50
+  LendingService:
+    Type: AWS::ECS::Service
+    DependsOn:
+    - HttpListener
+    - ApiPathRule
+    - RbiPathRule
+    Properties:
+      Cluster:
+        Fn::Sub: arn:aws:ecs:${AWS::Region}:${AWS::AccountId}:cluster/${ClusterName}
+      LaunchType: FARGATE
+      DesiredCount: 1
+      TaskDefinition: !Ref 'LendingTaskDefinition'
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          Subnets:
+          - !Ref 'PublicSubnet1'
+          - !Ref 'PublicSubnet2'
+          - !Ref 'PublicSubnet3'
+          SecurityGroups:
+          - !Ref 'EcsPlatformSecurityGroup'
+      LoadBalancers:
+      - ContainerName: nginx-proxy
+        ContainerPort: 80
+        TargetGroupArn: !Ref 'LendingTargetGroup'
+      HealthCheckGracePeriodSeconds: 60
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 50
+  ExecutiveService:
+    Type: AWS::ECS::Service
+    DependsOn:
+    - HttpListener
+    - ExecPathRule
+    Properties:
+      Cluster:
+        Fn::Sub: arn:aws:ecs:${AWS::Region}:${AWS::AccountId}:cluster/${ClusterName}
+      LaunchType: FARGATE
+      DesiredCount: 1
+      TaskDefinition: !Ref 'ExecutiveTaskDefinition'
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          Subnets:
+          - !Ref 'PublicSubnet1'
+          - !Ref 'PublicSubnet2'
+          - !Ref 'PublicSubnet3'
+          SecurityGroups:
+          - !Ref 'EcsPlatformSecurityGroup'
+      LoadBalancers:
+      - ContainerName: executive-intelligence
+        ContainerPort: 9009
+        TargetGroupArn: !Ref 'ExecutiveTargetGroup'
+      HealthCheckGracePeriodSeconds: 60
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 50
+  RbiPathRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      ListenerArn: !Ref 'HttpListener'
+      Priority: 31
+      Conditions:
+      - Field: path-pattern
+        Values:
+        - /rbi/*
+      Actions:
+      - Type: forward
+        TargetGroupArn: !Ref 'LendingTargetGroup'
+Outputs:
+  AlbArn:
+    Value: !Ref 'ApplicationLoadBalancer'
+  AlbDnsName:
+    Value:
+      Fn::GetAtt:
+      - ApplicationLoadBalancer
+      - DNSName
+  IdentityTargetGroupArn:
+    Value: !Ref 'IdentityTargetGroup'
+  LendingTargetGroupArn:
+    Value: !Ref 'LendingTargetGroup'
+  ExecutiveTargetGroupArn:
+    Value: !Ref 'ExecutiveTargetGroup'
+  AlbSecurityGroupId:
+    Value: !Ref 'AlbSecurityGroup'
+  EcsIdentitySecurityGroupId:
+    Value: !Ref 'EcsIdentitySecurityGroup'
+  EcsPlatformSecurityGroupId:
+    Value: !Ref 'EcsPlatformSecurityGroup'

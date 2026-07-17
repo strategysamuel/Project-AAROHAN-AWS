@@ -165,7 +165,7 @@ async def evaluate_credit(customer_id: int, db: Session = Depends(get_db)):
     # Adjust recommendation if fraud is detected
     approval_status = "PENDING_HUMAN_REVIEW"
     if rbi_fraud_status == "BLACKLISTED":
-        results["recommendation"] = "Reject"
+        results["recommendation"] = "REJECTED"
         results["decision_score"] = 0.0
         results["risk_grade"] = "Critical"
         results["approval_probability"] = 0.0

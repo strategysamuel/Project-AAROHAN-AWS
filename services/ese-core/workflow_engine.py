@@ -11,7 +11,7 @@ import uuid
 import time
 import logging
 import threading
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
@@ -110,7 +110,7 @@ class WorkflowInstance:
 
     def _log_audit(self, step_name: str, status: str, details: str = ""):
         entry = {
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "step": step_name,
             "status": status,
             "details": details,
@@ -128,7 +128,7 @@ class WorkflowInstance:
             "event_type": event_type,
             "workflow_id": self.workflow_id,
             "step": step_name,
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "persona": self.context.get("persona", ""),
         }
         self.business_events_published.append(record)

@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  # Container 1: Identity + Demo Platform
+  identity-platform:
+    build:
+      context: .
+      dockerfile: Dockerfile.identity
+    ports:
+      - "9000:9000"  # auth-service
+      - "9090:9090"  # ese-admin-service
+    environment:
+      - INTEGRATION_PROFILE=DEMO
+      - ACTIVE_DATASET=msme
+      - PYTHONPATH=/app/services/ese-core
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/livez"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    volumes:
+      - shared_db:/app/data
+
+  # Container 2: Lending Intelligence Engine
+  lending-intelligence:
+    build:
+      context: .
+      dockerfile: Dockerfile.lending
+    ports:
+      - "9001:9001"  # onboarding-service
+      - "9002:9002"  # consent-service
+      - "9003:9003"  # gst-service
+      - "9004:9004"  # aa-service
+      - "9005:9005"  # fhc-service
+      - "9006:9006"  # credit-engine
+      - "9007:9007"  # cam-service
+      - "9008:9008"  # ocen-uli-service
+      - "9011:9011"  # ckyc-service
+      - "9012:9012"  # mca-service
+      - "9013:9013"  # epfo-service
+    environment:
+      - INTEGRATION_PROFILE=DEMO
+      - ACTIVE_DATASET=msme
+      - PYTHONPATH=/app/services/ese-core
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9001/livez"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    depends_on:
+      identity-platform:
+        condition: service_healthy
+    volumes:
+      - shared_db:/app/data
+
+  # Container 3: Executive Intelligence Platform
+  executive-intelligence:
+    build:
+      context: .
+      dockerfile: Dockerfile.executive
+    ports:
+      - "9009:9009"  # exec-service
+      - "9010:9010"  # rm-workspace-service
+    environment:
+      - INTEGRATION_PROFILE=DEMO
+      - ACTIVE_DATASET=msme
+      - PYTHONPATH=/app/services/ese-core
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9009/livez"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    depends_on:
+      lending-intelligence:
+        condition: service_healthy
+    volumes:
+      - shared_db:/app/data
+
+volumes:
+  shared_db:

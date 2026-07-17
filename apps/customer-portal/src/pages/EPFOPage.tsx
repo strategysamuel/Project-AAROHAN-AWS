@@ -11,6 +11,7 @@ import {
   TrendingUp, AccountBalance, Gavel, History, Timeline, ErrorOutline,
   AssignmentInd, People, DateRange
 } from '@mui/icons-material';
+import { apiUrl } from '../lib/api';
 
 interface EPFOContribution {
   id: number;
@@ -64,7 +65,7 @@ interface EPFOProfile {
   last_synced_at: string;
 }
 
-const API = 'http://localhost:8000'; // Gateway routing
+const API = apiUrl(''); // Gateway routing
 
 const EPFOPage: React.FC = () => {
   const [tabIndex, setTabIndex] = useState(0);
@@ -110,18 +111,16 @@ const EPFOPage: React.FC = () => {
 
         // Fetch employee lists, contributions, and analytics
         const empRes = await fetch(`${API}/epfo/employees/99`);
-        if (empRes.ok) setEmployees(await empRes.json());
+        if (!empRes.ok) throw new Error(); setEmployees(await empRes.json());
 
         const conRes = await fetch(`${API}/epfo/contributions/99`);
-        if (conRes.ok) setContributions(await conRes.json());
+        if (!conRes.ok) throw new Error(); setContributions(await conRes.json());
 
         const anlRes = await fetch(`${API}/epfo/analytics/99`);
-        if (anlRes.ok) setAnalytics(await anlRes.json());
+        if (!anlRes.ok) throw new Error(); setAnalytics(await anlRes.json());
 
         setSuccess('✓ EPFO Establishment Profile and Workforce stability analyses completed!');
-      } else {
-        setError('Establishment ID validation failed. Make sure it matches standard Indian EPFO code (15/22 alphanumeric format).');
-      }
+      } else { throw new Error(); }
     } catch {
       // Mock Fallbacks
       setProfile({

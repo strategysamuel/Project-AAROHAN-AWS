@@ -1,12 +1,13 @@
+from services.shared.database import Base
 import datetime
 from sqlalchemy import Column, String, Integer, DateTime, Boolean, ForeignKey, Float, Text
-from sqlalchemy.orm import relationship, declarative_base
+from sqlalchemy.orm import relationship
 
-Base = declarative_base()
 
 class MCACompanyProfile(Base):
     __tablename__ = "mca_company_profiles"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     customer_id = Column(Integer, unique=True, nullable=False, index=True)
     cin = Column(String(21), unique=True, nullable=False, index=True) # 21-character CIN
@@ -28,7 +29,8 @@ class MCACompanyProfile(Base):
 
 class MCADirector(Base):
     __tablename__ = "mca_directors"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     company_id = Column(Integer, ForeignKey("mca_company_profiles.id"), nullable=False)
     din = Column(String(8), nullable=False) # 8-character DIN
@@ -40,7 +42,8 @@ class MCADirector(Base):
 
 class MCACharge(Base):
     __tablename__ = "mca_charges"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     company_id = Column(Integer, ForeignKey("mca_company_profiles.id"), nullable=False)
     charge_id = Column(String(50), nullable=False) # Charge registration ID
@@ -53,7 +56,8 @@ class MCACharge(Base):
 
 class MCACompanyFiling(Base):
     __tablename__ = "mca_company_filings"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     company_id = Column(Integer, ForeignKey("mca_company_profiles.id"), nullable=False)
     form_name = Column(String(50), nullable=False) # e.g. "AOC-4", "MGT-7"
@@ -66,7 +70,8 @@ class MCACompanyFiling(Base):
 
 class MCAFinancialStatement(Base):
     __tablename__ = "mca_financial_statements"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     company_id = Column(Integer, ForeignKey("mca_company_profiles.id"), nullable=False)
     financial_year = Column(String(20), nullable=False) # e.g. "2024-25"
@@ -79,7 +84,8 @@ class MCAFinancialStatement(Base):
 
 class MCAGovernanceAnalytics(Base):
     __tablename__ = "mca_governance_analytics"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     company_id = Column(Integer, ForeignKey("mca_company_profiles.id"), nullable=False)
     company_age = Column(Float, default=0.0)

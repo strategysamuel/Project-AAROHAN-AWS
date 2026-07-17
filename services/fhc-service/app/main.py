@@ -769,7 +769,7 @@ async def generate_health_card(customer_id: int, db: Session = Depends(get_db)):
         "customer_id": customer_id,
         "overall_score": card.overall_score,
         "rating": card.rating,
-        "event_time": datetime.datetime.utcnow().isoformat() + "Z"
+        "event_time": datetime.datetime.now(datetime.UTC).isoformat()
     }
     publish_fhc_event(event_name, customer_id, payload)
     
@@ -884,7 +884,7 @@ async def override_score(customer_id: int, payload: ScoreOverrideRequest, db: Se
     card.overall_score = payload.overridden_score
     card.override_reason = payload.override_reason
     card.overridden_by = payload.overridden_by
-    card.override_date = datetime.datetime.utcnow()
+    card.override_date = datetime.datetime.now(datetime.UTC)
     
     # Recalculate Rating based on overridden score
     _, thresholds = get_active_config(db)

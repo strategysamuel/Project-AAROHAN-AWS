@@ -7,7 +7,7 @@ client = TestClient(app)
 
 def test_consent_lifecycle():
     # 1. Create a pending consent request
-    future_date = (datetime.datetime.utcnow() + datetime.timedelta(days=30)).isoformat()
+    future_date = (datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=30)).isoformat()
     payload = {
         "customer_id": 101,
         "provider_type": "ACCOUNT_AGGREGATOR",

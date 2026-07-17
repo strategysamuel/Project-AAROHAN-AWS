@@ -1,12 +1,13 @@
+from services.shared.database import Base
 import datetime
 from sqlalchemy import Column, String, Integer, DateTime, Boolean, ForeignKey, Float, Text
-from sqlalchemy.orm import relationship, declarative_base
+from sqlalchemy.orm import relationship
 
-Base = declarative_base()
 
 class GSTProfile(Base):
     __tablename__ = "gst_profiles"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     customer_id = Column(Integer, nullable=False, index=True)
     gstin = Column(String(15), unique=True, nullable=False, index=True)
@@ -23,7 +24,8 @@ class GSTProfile(Base):
 
 class GSTReturn(Base):
     __tablename__ = "gst_returns"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     profile_id = Column(Integer, ForeignKey("gst_profiles.id"), nullable=False)
     return_type = Column(String(10), nullable=False) # GSTR1, GSTR3B
@@ -41,7 +43,8 @@ class GSTReturn(Base):
 
 class GSTAnalytics(Base):
     __tablename__ = "gst_analytics"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     profile_id = Column(Integer, ForeignKey("gst_profiles.id"), nullable=False)
     avg_monthly_turnover = Column(Float, default=0.0)

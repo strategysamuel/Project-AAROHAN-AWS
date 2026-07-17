@@ -1,4 +1,4 @@
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, model_validator, ConfigDict
 import datetime
 from typing import List, Optional, Dict, Any
 
@@ -8,8 +8,7 @@ class ScoreHistoryResponse(BaseModel):
     score_value: float
     rating: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class FinancialHealthCardResponse(BaseModel):
     id: int
@@ -107,8 +106,7 @@ class FinancialHealthCardResponse(BaseModel):
     updated_at: datetime.datetime
     history: List[ScoreHistoryResponse] = []
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
     @model_validator(mode='after')
     def set_fhc_score(self) -> 'FinancialHealthCardResponse':

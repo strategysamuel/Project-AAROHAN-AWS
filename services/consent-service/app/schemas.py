@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 import datetime
 from typing import List, Optional
 
@@ -13,8 +13,7 @@ class ConsentPurposeCreate(ConsentPurposeBase):
 class ConsentPurposeResponse(ConsentPurposeBase):
     id: int
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class ConsentBase(BaseModel):
     customer_id: int
@@ -24,7 +23,7 @@ class ConsentBase(BaseModel):
 
     @field_validator("valid_until")
     def validate_valid_until(cls, v):
-        if v <= datetime.datetime.utcnow():
+        if v <= datetime.datetime.now(datetime.UTC):
             raise ValueError("Expiration date must be in the future.")
         return v
 
@@ -43,8 +42,7 @@ class ConsentArtifactResponse(BaseModel):
     signature_hash: str
     signed_timestamp: datetime.datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class ConsentResponse(ConsentBase):
     id: int
@@ -53,8 +51,7 @@ class ConsentResponse(ConsentBase):
     updated_at: datetime.datetime
     artifacts: List[ConsentArtifactResponse] = []
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class ConsentApprovalRequest(BaseModel):
     signature_hash: str

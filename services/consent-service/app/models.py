@@ -1,12 +1,13 @@
+from services.shared.database import Base
 import datetime
 from sqlalchemy import Column, String, Integer, DateTime, Boolean, ForeignKey, Table
-from sqlalchemy.orm import relationship, declarative_base
+from sqlalchemy.orm import relationship
 
-Base = declarative_base()
 
 class ConsentPurpose(Base):
     __tablename__ = "consent_purposes"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     code = Column(String(50), unique=True, nullable=False, index=True) # e.g. "CREDIT_APPRAISAL", "MONITORING"
     description = Column(String(255), nullable=False)
@@ -14,7 +15,8 @@ class ConsentPurpose(Base):
 
 class Consent(Base):
     __tablename__ = "consents"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     customer_id = Column(Integer, nullable=False, index=True)
     provider_type = Column(String(50), nullable=False) # e.g. "ACCOUNT_AGGREGATOR", "GSTN", "CKYC", "DIGILOCKER"
@@ -28,7 +30,8 @@ class Consent(Base):
 
 class ConsentArtifact(Base):
     __tablename__ = "consent_artifacts"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     consent_id = Column(Integer, ForeignKey("consents.id"), nullable=False)
     signature_hash = Column(String(255), nullable=False) # Digital signature validating customer approval

@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 import datetime
 from typing import List, Optional
 
@@ -8,8 +8,7 @@ class ExecKPIResponse(BaseModel):
     metric_value: float
     updated_at: datetime.datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class ExecBranchPerformanceResponse(BaseModel):
     id: int
@@ -19,8 +18,7 @@ class ExecBranchPerformanceResponse(BaseModel):
     active_accounts: int
     average_health_score: float
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class ExecutiveBriefingResponse(BaseModel):
     briefing_date: datetime.date

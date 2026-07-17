@@ -1,12 +1,13 @@
+from services.shared.database import Base
 import datetime
 from sqlalchemy import Column, String, Integer, DateTime, Boolean, ForeignKey, Float, Text
-from sqlalchemy.orm import relationship, declarative_base
+from sqlalchemy.orm import relationship
 
-Base = declarative_base()
 
 class FinancialHealthCard(Base):
     __tablename__ = "fhc_cards"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     customer_id = Column(Integer, nullable=False, unique=True, index=True)
     
@@ -104,7 +105,8 @@ class FinancialHealthCard(Base):
 
 class ScoreHistory(Base):
     __tablename__ = "fhc_score_history"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     card_id = Column(Integer, ForeignKey("fhc_cards.id"), nullable=False)
     recorded_at = Column(DateTime, default=datetime.datetime.utcnow)
@@ -115,7 +117,8 @@ class ScoreHistory(Base):
 
 class FHCConfig(Base):
     __tablename__ = "fhc_config"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     model_name = Column(String(100), unique=True, default="default")
     weights = Column(Text, nullable=False) # JSON string for weights
@@ -131,6 +134,7 @@ class FHCConfig(Base):
 class OnboardingCustomer(Base):
     __tablename__ = "onboarding_customers"
     __table_args__ = {'extend_existing': True}
+    {'extend_existing': True}
     id = Column(Integer, primary_key=True)
     legal_name = Column(String)
     mobile_number = Column(String)
@@ -141,6 +145,7 @@ class OnboardingCustomer(Base):
 class OnboardingBusiness(Base):
     __tablename__ = "onboarding_businesses"
     __table_args__ = {'extend_existing': True}
+    {'extend_existing': True}
     id = Column(Integer, primary_key=True)
     customer_id = Column(Integer)
     trade_name = Column(String)
@@ -156,6 +161,7 @@ class OnboardingBusiness(Base):
 class CKYCRecord(Base):
     __tablename__ = "ckyc_records"
     __table_args__ = {'extend_existing': True}
+    {'extend_existing': True}
     id = Column(Integer, primary_key=True)
     customer_id = Column(Integer)
     ckyc_number = Column(String)
@@ -164,6 +170,7 @@ class CKYCRecord(Base):
 class CKYCVerificationLog(Base):
     __tablename__ = "ckyc_verification_logs"
     __table_args__ = {'extend_existing': True}
+    {'extend_existing': True}
     id = Column(Integer, primary_key=True)
     customer_id = Column(Integer)
     match_confidence = Column(Float)
@@ -174,6 +181,7 @@ class CKYCVerificationLog(Base):
 class GSTProfile(Base):
     __tablename__ = "gst_profiles"
     __table_args__ = {'extend_existing': True}
+    {'extend_existing': True}
     id = Column(Integer, primary_key=True)
     customer_id = Column(Integer)
     gstin = Column(String)
@@ -182,6 +190,7 @@ class GSTProfile(Base):
 class GSTAnalytics(Base):
     __tablename__ = "gst_analytics"
     __table_args__ = {'extend_existing': True}
+    {'extend_existing': True}
     id = Column(Integer, primary_key=True)
     profile_id = Column(Integer)
     avg_monthly_turnover = Column(Float)
@@ -199,6 +208,7 @@ class GSTAnalytics(Base):
 class AAAnalytics(Base):
     __tablename__ = "aa_analytics"
     __table_args__ = {'extend_existing': True}
+    {'extend_existing': True}
     id = Column(Integer, primary_key=True)
     customer_id = Column(Integer)
     total_inflow = Column(Float)
@@ -220,6 +230,7 @@ class AAAnalytics(Base):
 class EPFOProfile(Base):
     __tablename__ = "epfo_profiles"
     __table_args__ = {'extend_existing': True}
+    {'extend_existing': True}
     id = Column(Integer, primary_key=True)
     customer_id = Column(Integer)
     number_of_employees = Column(Integer)
@@ -227,6 +238,7 @@ class EPFOProfile(Base):
 class EPFOAnalytics(Base):
     __tablename__ = "epfo_analytics"
     __table_args__ = {'extend_existing': True}
+    {'extend_existing': True}
     id = Column(Integer, primary_key=True)
     profile_id = Column(Integer)
     active_employees = Column(Integer)
@@ -241,6 +253,7 @@ class EPFOAnalytics(Base):
 class MCACompanyProfile(Base):
     __tablename__ = "mca_company_profiles"
     __table_args__ = {'extend_existing': True}
+    {'extend_existing': True}
     id = Column(Integer, primary_key=True)
     customer_id = Column(Integer)
     cin = Column(String)
@@ -251,6 +264,7 @@ class MCACompanyProfile(Base):
 class MCAGovernanceAnalytics(Base):
     __tablename__ = "mca_governance_analytics"
     __table_args__ = {'extend_existing': True}
+    {'extend_existing': True}
     id = Column(Integer, primary_key=True)
     company_id = Column(Integer)
     compliance_score = Column(Float)
@@ -260,6 +274,7 @@ class MCAGovernanceAnalytics(Base):
 class MCADirector(Base):
     __tablename__ = "mca_directors"
     __table_args__ = {'extend_existing': True}
+    {'extend_existing': True}
     id = Column(Integer, primary_key=True)
     company_id = Column(Integer)
     is_disqualified = Column(Boolean)
@@ -267,6 +282,7 @@ class MCADirector(Base):
 class MCACharge(Base):
     __tablename__ = "mca_charges"
     __table_args__ = {'extend_existing': True}
+    {'extend_existing': True}
     id = Column(Integer, primary_key=True)
     company_id = Column(Integer)
     charge_amount = Column(Float)

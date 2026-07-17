@@ -556,6 +556,7 @@ def _build_pdf_stub(cam: CAMRecord, tmpl: dict) -> bytes:
     response_model=CAMRecordResponse,
     summary="Generate CAM",
     tags=["CAM"],
+    status_code=201,
 )
 async def generate_cam(payload: CAMGenerateRequest, db: Session = Depends(get_db)):
     """Auto-generates a full 18-section CAM from upstream intelligence."""
@@ -600,6 +601,7 @@ async def generate_cam(payload: CAMGenerateRequest, db: Session = Depends(get_db
     response_model=CAMRecordResponse,
     summary="Generate CAM by Customer ID (quick trigger)",
     tags=["CAM"],
+    status_code=201,
 )
 async def generate_cam_by_id(
     customer_id: int,

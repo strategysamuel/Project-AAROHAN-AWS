@@ -36,13 +36,9 @@ class DatasetGenerator:
         db_path = get_active_dataset_path()
         logger.info(f"Generating simulated dataset size: {profile_size} ({num_customers} customers) at {db_path}")
         
-        # Connect to SQLite
-        engine = create_engine(f"sqlite:///{db_path}", connect_args={"check_same_thread": False})
-        Base.metadata.drop_all(bind=engine)
+        from services.shared.database import SessionLocal, engine
         Base.metadata.create_all(bind=engine)
-        
-        Session = sessionmaker(bind=engine)
-        db = Session()
+        db = SessionLocal()
         
         try:
             # Seed structures

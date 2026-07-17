@@ -1,4 +1,6 @@
+import json
 import logging
+import os
 import sys
 import time
 import uuid
@@ -26,6 +28,51 @@ logging.basicConfig(
     handlers=[logging.StreamHandler(sys.stdout)]
 )
 logger = logging.getLogger("onboarding-service")
+
+WORKSPACE_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+PERSONAS_DIR = os.path.join(WORKSPACE_ROOT, "ese", "personas")
+DATASET_DIR = os.path.join(WORKSPACE_ROOT, "ese", "datasets", "msme")
+
+PERSONA_ALIASES = {
+    "GreenAgro Cooperative": "Green Valley Farms",
+    "QuickLogistics Services": "TechBoost Solutions",
+}
+
+def _load_persona_templates() -> dict:
+    templates: dict = {}
+    if os.path.isdir(PERSONAS_DIR):
+        for entry in os.listdir(PERSONAS_DIR):
+            if not entry.endswith(".json") or entry == "schema.json":
+                continue
+            file_path = os.path.join(PERSONAS_DIR, entry)
+            try:
+                with open(file_path, "r", encoding="utf-8") as handle:
+                    persona = json.load(handle)
+                persona_name = persona.get("persona_name")
+                if persona_name:
+                    templates[persona_name] = {
+                        "legal_name": persona.get("legal_name", persona_name),
+                        "mobile_number": persona.get("mobile_number", ""),
+                        "email": persona.get("email", ""),
+                        "pan": persona.get("pan", ""),
+                        "aadhaar_masked": persona.get("aadhaar_masked", ""),
+                        "district": persona.get("district", ""),
+                        "persona_name": persona_name,
+                        "business": persona.get("business", {}),
+                    }
+            except Exception:
+                logger.warning(f"WARNING | Failed to load persona template: {file_path}")
+
+    return templates
+
+
+PERSONA_TEMPLATES = _load_persona_templates()
+
+
+def _resolve_persona_name(persona_name: str) -> str:
+    if persona_name in PERSONA_TEMPLATES:
+        return persona_name
+    return PERSONA_ALIASES.get(persona_name, persona_name)
 
 # Initialize database schemas
 init_db()
@@ -295,11 +342,12 @@ PERSONA_TEMPLATES = {
 @app.post("/customers/load-persona", response_model=dict)
 async def load_persona(payload: PersonaLoadRequest):
     """Return prefilled form data for a named ESE persona."""
-    tmpl = PERSONA_TEMPLATES.get(payload.persona_name)
+    resolved_name = payload.persona_name
+    tmpl = PERSONA_TEMPLATES.get(resolved_name)
     if not tmpl:
         raise HTTPException(status_code=404, detail=f"Persona '{payload.persona_name}' not found in dataset.")
-    logger.info(f"AUDIT | Persona form populated: {payload.persona_name}")
-    return {"status": "ok", "persona": tmpl}
+    logger.info(f"AUDIT | Persona form populated: {payload.persona_name} -> {resolved_name}")
+    return {"status": "ok", "persona": {**tmpl, "requested_persona_name": payload.persona_name, "resolved_persona_name": resolved_name}}
 
 
 # --- Field Validation ---

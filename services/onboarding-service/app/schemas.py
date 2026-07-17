@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, EmailStr, field_validator
+from pydantic import BaseModel, Field, EmailStr, field_validator, ConfigDict
 import re
 import datetime
 from typing import List, Optional
@@ -31,8 +31,7 @@ class AddressCreate(AddressBase):
 class AddressResponse(AddressBase):
     id: int
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class ProprietorDirectorBase(BaseModel):
     full_name: str = Field(..., min_length=3)
@@ -64,8 +63,7 @@ class ProprietorDirectorCreate(ProprietorDirectorBase):
 class ProprietorDirectorResponse(ProprietorDirectorBase):
     id: int
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class BusinessEntityBase(BaseModel):
     trade_name: str = Field(..., min_length=3)
@@ -99,8 +97,7 @@ class BusinessEntityResponse(BusinessEntityBase):
     id: int
     directors: List[ProprietorDirectorResponse] = []
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class CustomerBase(BaseModel):
     legal_name: str = Field(..., min_length=3)
@@ -137,8 +134,7 @@ class CustomerResponse(CustomerBase):
     addresses: List[AddressResponse] = []
     documents: List["DocumentResponse"] = []
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # ---- Document Schemas ----
 
@@ -150,8 +146,7 @@ class DocumentResponse(BaseModel):
     status: str
     uploaded_at: datetime.datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class DocumentUploadRequest(BaseModel):
     doc_type: str = Field(..., description="PAN | AADHAAR | GST_CERT | UDYAM | BANK_STMT | FINANCIALS | COI")

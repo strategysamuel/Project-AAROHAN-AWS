@@ -1,0 +1,12 @@
+2026-07-13T01:26:20.150Z [INFO]: # Build environment configured with Standard build compute type: 8GiB Memory, 4vCPUs, 128GB Disk Space
+2026-07-13T01:26:20.400Z [INFO]: # Retrieving Git provider SSH public keys
+2026-07-13T01:26:26.543Z [INFO]: # Successfully retrieved Git provider SSH public keys
+2026-07-13T01:26:26.622Z [INFO]: # Cloning repository: git@github.com:strategysamuel/Project-AAROHAN-AWS.git
+2026-07-13T01:27:18.909Z [INFO]: Agent pid 470
+2026-07-13T01:27:18.992Z [INFO]: Identity added: /root/.ssh/git_rsa (/root/.ssh/git_rsa)
+                                 Cloning into 'Project-AAROHAN-AWS'...
+                                 fatal: Remote branch develop/v1.1 not found in upstream origin
+2026-07-13T01:27:18.992Z [ERROR]: !!! CustomerError: Unable to clone repository due to user error code: 128
+2026-07-13T01:27:18.992Z [INFO]: # Starting environment caching...
+2026-07-13T01:27:18.993Z [INFO]: # Environment caching completed
+

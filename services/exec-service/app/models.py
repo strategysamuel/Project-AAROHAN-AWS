@@ -1,12 +1,13 @@
+from services.shared.database import Base
 import datetime
 from sqlalchemy import Column, String, Integer, DateTime, Boolean, ForeignKey, Float
-from sqlalchemy.orm import relationship, declarative_base
+from sqlalchemy.orm import relationship
 
-Base = declarative_base()
 
 class ExecKPI(Base):
     __tablename__ = "exec_kpis"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     metric_name = Column(String(100), unique=True, nullable=False, index=True) # e.g. "TOTAL_PORTFOLIO_VOLUME", "ACTIVE_MSME_COUNT"
     metric_value = Column(Float, nullable=False)
@@ -14,7 +15,8 @@ class ExecKPI(Base):
 
 class ExecBranchPerformance(Base):
     __tablename__ = "exec_branch_performance"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     branch_name = Column(String(100), unique=True, nullable=False, index=True) # e.g. "Mumbai Corporate", "Coimbatore MSME"
     region = Column(String(50), nullable=False) # West, South, North, East

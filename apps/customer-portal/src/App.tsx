@@ -8,7 +8,13 @@ import AAPage from './pages/AAPage';
 import EPFOPage from './pages/EPFOPage';
 import MCAPage from './pages/MCAPage';
 import CAMPage from './pages/CAMPage';
+import FinancialHealthCardPage from './pages/FinancialHealthCardPage';
+import CreditDecisionPage from './pages/CreditDecisionPage';
+import ReportsPage from './pages/ReportsPage';
+import SettingsPage from './pages/SettingsPage';
 import ExecutiveCommandCenterPage from './pages/ExecutiveCommandCenterPage';
+import AiBankingCopilotPanel from './components/AiBankingCopilotPanel';
+import { apiUrl, authUrl } from './lib/api';
 import {
   ThemeProvider,
   createTheme,
@@ -74,6 +80,11 @@ import {
   History,
   TrendingUp,
   SmartToy,
+  RocketLaunch,
+  AutoAwesome,
+  RestartAlt,
+  AssignmentTurnedIn,
+  FileDownload,
   Logout,
   VpnKey,
   PlayArrow,
@@ -155,7 +166,7 @@ const uiStore = createStore<UIState>((set, get) => ({
   login: async (mobile, password) => {
     set({ isLoading: true });
     try {
-      const response = await fetch('http://localhost:8000/auth/login', {
+      const response = await fetch(authUrl('/auth/login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ mobile_number: mobile, password })
@@ -167,7 +178,7 @@ const uiStore = createStore<UIState>((set, get) => ({
       
       const tokenData = await response.json();
       
-      const meResponse = await fetch('http://localhost:8000/auth/me', {
+      const meResponse = await fetch(authUrl('/auth/me'), {
         headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
       });
       
@@ -178,7 +189,7 @@ const uiStore = createStore<UIState>((set, get) => ({
       const profile = await meResponse.json();
       
       try {
-        const controlRes = await fetch('http://localhost:8090/ese/control');
+        const controlRes = await fetch(apiUrl('/ese/control'));
         if (controlRes.ok) {
           const controlState = await controlRes.json();
           set({
@@ -226,13 +237,13 @@ const uiStore = createStore<UIState>((set, get) => ({
   setSimulation: async (persona, scenario) => {
     set({ isLoading: true });
     try {
-      await fetch('http://localhost:8090/ese/control/persona', {
+      await fetch(apiUrl('/ese/control/persona'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ persona })
       });
       
-      await fetch('http://localhost:8090/ese/control/scenario', {
+      await fetch(apiUrl('/ese/control/scenario'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ scenario })
@@ -317,6 +328,111 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
   const config = getBadgeConfig(status);
   return <Chip label={config.label} color={config.color} size="small" variant="outlined" />;
 };
+
+const DEMO_PERSONAS = [
+  {
+    name: 'Priya Textile Works',
+    scenario: 'Healthy Business',
+    industry: 'Manufacturing',
+    location: 'Surat, Gujarat',
+    intent: 'Fast-track approval and limit expansion',
+    tone: 'High-confidence MSME with strong compliance signals.'
+  },
+  {
+    name: 'GreenAgro Cooperative',
+    scenario: 'Seasonal Business',
+    industry: 'Agriculture',
+    location: 'Nashik, Maharashtra',
+    intent: 'Seasonal working-capital support',
+    tone: 'Stable borrower with cyclical cash-flow pressure.'
+  },
+  {
+    name: 'QuickLogistics Services',
+    scenario: 'High Growth',
+    industry: 'Logistics',
+    location: 'Pune, Maharashtra',
+    intent: 'Growth-led limit enhancement',
+    tone: 'Expansion case with elevated operating velocity.'
+  },
+  {
+    name: 'SparkTech Solutions',
+    scenario: 'Cash Flow Stress',
+    industry: 'Services',
+    location: 'Bengaluru, Karnataka',
+    intent: 'Manual review and controlled decisioning',
+    tone: 'Thin-file startup profile to demonstrate exception handling.'
+  }
+];
+
+const DEMO_WALKTHROUGH = [
+  {
+    title: 'Reset sandbox',
+    description: 'Clear the simulation layer and restore a clean release-candidate state.',
+    page: 'Demo Studio'
+  },
+  {
+    title: 'Load persona',
+    description: 'Switch to the selected borrower profile and macro scenario.',
+    page: 'Enterprise Simulation Engine'
+  },
+  {
+    title: 'Run underwriting',
+    description: 'Open onboarding, CKYC, GST, AA, EPFO, MCA, FHC, credit, and CAM views.',
+    page: 'Customer Onboarding'
+  },
+  {
+    title: 'Review outcomes',
+    description: 'Move to executive reporting, sample reports, and audit-ready summaries.',
+    page: 'Executive Dashboard'
+  }
+];
+
+const DEMO_REPORTS = [
+  {
+    label: 'Financial Health Card',
+    reportType: 'FHC',
+    fileName: 'AAROHAN_FHC_RC1.md',
+    description: 'Explainable health score and risk indicators.'
+  },
+  {
+    label: 'Credit Decision',
+    reportType: 'CREDIT',
+    fileName: 'AAROHAN_CREDIT_DECISION_RC1.md',
+    description: 'Recommendation, confidence, and approval rationale.'
+  },
+  {
+    label: 'CAM Memo',
+    reportType: 'CAM',
+    fileName: 'AAROHAN_CAM_RC1.md',
+    description: 'Structured credit appraisal memorandum.'
+  },
+  {
+    label: 'Fraud Report',
+    reportType: 'RISK',
+    fileName: 'AAROHAN_FRAUD_REPORT_RC1.md',
+    description: 'Fraud, compliance, and early-warning summary.'
+  },
+  {
+    label: 'Executive Summary',
+    reportType: 'RECOMMENDATION',
+    fileName: 'AAROHAN_EXECUTIVE_SUMMARY_RC1.md',
+    description: 'Board-ready summary for release-candidate demo.'
+  },
+  {
+    label: 'Portfolio Summary',
+    reportType: 'PORTFOLIO',
+    fileName: 'AAROHAN_PORTFOLIO_SUMMARY_RC1.md',
+    description: 'Portfolio mix and concentration snapshot.'
+  }
+];
+
+const DEMO_RESET_ENDPOINTS = [
+  apiUrl('/ese/control/reset'),
+  apiUrl('/aa/reset'),
+  apiUrl('/gst/reset'),
+  apiUrl('/epfo/reset'),
+  apiUrl('/mca/reset')
+];
 
 // ----------------------------------------------------
 // 3. PAGES RENDER
@@ -410,6 +526,337 @@ const DashboardPage = () => {
                 <Typography variant="body2" fontWeight="bold" color="secondary.main">{ui.activePersona}</Typography>
               </Box>
             </Box>
+
+            <Divider sx={{ my: 2 }} />
+            <Stack spacing={1.2}>
+              <Button variant="contained" startIcon={<RocketLaunch />} onClick={() => ui.setActivePage('Demo Studio')}>
+                Open RC1 Demo Studio
+              </Button>
+              <Button variant="outlined" startIcon={<AutoAwesome />} onClick={() => ui.setActivePage('Executive Dashboard')}>
+                Jump to Executive Review
+              </Button>
+            </Stack>
+          </Paper>
+        </Grid>
+      </Grid>
+    </Box>
+  );
+};
+
+const DemoStudioPage = () => {
+  const ui = useStore(uiStore);
+  const [busyAction, setBusyAction] = React.useState<string | null>(null);
+  const [selectedPersona, setSelectedPersona] = React.useState(ui.activePersona);
+  const [selectedScenario, setSelectedScenario] = React.useState(ui.activeScenario);
+  const [walkthroughStep, setWalkthroughStep] = React.useState(0);
+  const [statusText, setStatusText] = React.useState('Ready to launch the RC1 release candidate demo.');
+
+  React.useEffect(() => {
+    setSelectedPersona(ui.activePersona);
+    setSelectedScenario(ui.activeScenario);
+  }, [ui.activePersona, ui.activeScenario]);
+
+  const downloadText = (fileName: string, content: string, mimeType = 'text/markdown') => {
+    const blob = new Blob([content], { type: `${mimeType};charset=utf-8` });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+  };
+
+  const launchDemo = async (persona: string, scenario: string) => {
+    setBusyAction('launch');
+    setSelectedPersona(persona);
+    setSelectedScenario(scenario);
+    setStatusText(`Configuring sandbox for ${persona} under ${scenario}.`);
+    try {
+      await ui.setSimulation(persona, scenario);
+      setWalkthroughStep(1);
+      ui.setActivePage('Customer Onboarding');
+      ui.showNotification(`RC1 demo loaded for ${persona}`, 'success');
+      setStatusText(`Demo ready. Opened onboarding for ${persona}.`);
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
+  const resetDemo = async () => {
+    setBusyAction('reset');
+    setStatusText('Resetting simulation, domain datasets, and demo state.');
+    const outcomes = await Promise.allSettled(
+      DEMO_RESET_ENDPOINTS.map((url) => fetch(url, { method: 'POST' }))
+    );
+    const completed = outcomes.filter((result) => result.status === 'fulfilled' && result.value.ok).length;
+    setWalkthroughStep(0);
+    ui.setActivePage('Demo Studio');
+    ui.setSimulation(DEMO_PERSONAS[0].name, DEMO_PERSONAS[0].scenario).catch(() => undefined);
+    ui.showNotification(`Demo reset completed across ${completed}/${DEMO_RESET_ENDPOINTS.length} services.`, completed > 0 ? 'success' : 'warning');
+    setStatusText('Sandbox reset complete. RC1 ready for a fresh walkthrough.');
+    setBusyAction(null);
+  };
+
+  const generateReport = async (reportType: string, fileName: string) => {
+    setBusyAction(reportType);
+    setStatusText(`Generating ${reportType} sample report.`);
+    try {
+      const response = await fetch(apiUrl('/ese/control/report'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          report_type: reportType,
+          format_type: 'MARKDOWN',
+          data: {
+            customer_id: 99,
+            persona: ui.activePersona,
+            scenario: ui.activeScenario,
+            dataset: ui.activeDataset,
+            active_page: ui.activePage,
+            release: 'AAR-BUILD-020 RC1'
+          }
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Report generation failed with status ${response.status}`);
+      }
+
+      const payload = await response.json();
+      const content = typeof payload.content === 'string'
+        ? payload.content
+        : `# Project AAROHAN - ${reportType} Report\n\nGenerated for ${ui.activePersona} in ${ui.activeScenario}.`;
+      downloadText(fileName, content);
+      ui.showNotification(`${reportType} report downloaded.`, 'success');
+      setStatusText(`${reportType} report exported for the current demo state.`);
+    } catch {
+      const fallback = `# Project AAROHAN - ${reportType} Report\n\nPersona: ${ui.activePersona}\nScenario: ${ui.activeScenario}\nDataset: ${ui.activeDataset}\nPage: ${ui.activePage}\n\nThis RC1 fallback keeps the demo self-contained even when the control plane is unavailable.`;
+      downloadText(fileName, fallback);
+      ui.showNotification(`${reportType} report generated locally.`, 'warning');
+      setStatusText(`${reportType} report exported from local demo fallback.`);
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
+  return (
+    <Box>
+      <Paper sx={{ p: 4, mb: 4, borderRadius: 3, overflow: 'hidden', border: '1px solid rgba(66,133,244,0.25)', background: 'linear-gradient(135deg, rgba(7,10,19,0.98) 0%, rgba(15,22,40,0.96) 55%, rgba(52,168,83,0.14) 100%)' }}>
+        <Grid container spacing={3} alignItems="center">
+          <Grid item xs={12} md={7}>
+            <Chip icon={<AutoAwesome />} label="Hackathon Release Candidate RC1" color="secondary" variant="outlined" sx={{ mb: 2 }} />
+            <Typography variant="h4" fontWeight="800" sx={{ mb: 1 }}>
+              Demo studio for the final lending journey
+            </Typography>
+            <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 760, mb: 3 }}>
+              Launch a borrower persona, walk the file through onboarding and underwriting, reset the sandbox on demand, and export sample reports without leaving the portal.
+            </Typography>
+            <Stack direction="row" spacing={1.5} flexWrap="wrap" useFlexGap>
+              <Button variant="contained" size="large" startIcon={<RocketLaunch />} disabled={busyAction === 'launch'} onClick={() => launchDemo(DEMO_PERSONAS[0].name, DEMO_PERSONAS[0].scenario)}>
+                Launch RC1 Demo
+              </Button>
+              <Button variant="outlined" size="large" startIcon={<RestartAlt />} disabled={busyAction === 'reset'} onClick={resetDemo}>
+                Reset Demo State
+              </Button>
+              <Button variant="outlined" size="large" startIcon={<AssignmentTurnedIn />} onClick={() => ui.setActivePage('Customer Onboarding')}>
+                Guided Walkthrough
+              </Button>
+            </Stack>
+          </Grid>
+          <Grid item xs={12} md={5}>
+            <Paper sx={{ p: 3, bgcolor: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 3 }}>
+              <Typography variant="subtitle1" fontWeight="700" sx={{ mb: 2 }}>Release-candidate status</Typography>
+              <Stack spacing={1.4}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+                  <Typography variant="body2" color="text.secondary">Persona</Typography>
+                  <Typography variant="body2" fontWeight="700" align="right">{selectedPersona}</Typography>
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+                  <Typography variant="body2" color="text.secondary">Scenario</Typography>
+                  <Typography variant="body2" fontWeight="700" color="secondary.main" align="right">{selectedScenario}</Typography>
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+                  <Typography variant="body2" color="text.secondary">Active page</Typography>
+                  <Typography variant="body2" fontWeight="700" align="right">{ui.activePage}</Typography>
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+                  <Typography variant="body2" color="text.secondary">Dataset</Typography>
+                  <Typography variant="body2" fontWeight="700" align="right">{ui.activeDataset}</Typography>
+                </Box>
+              </Stack>
+              <Divider sx={{ my: 2 }} />
+              <Typography variant="caption" color="text.secondary">
+                {statusText}
+              </Typography>
+            </Paper>
+          </Grid>
+        </Grid>
+      </Paper>
+
+      <Grid container spacing={3} sx={{ mb: 3 }}>
+        <Grid item xs={12} md={3}>
+          <MetricCard title="Demo Persona" value={selectedPersona} subtext="Current borrower profile" icon={<People />} />
+        </Grid>
+        <Grid item xs={12} md={3}>
+          <MetricCard title="Scenario" value={selectedScenario} subtext="Stress-test profile" icon={<TrendingUp />} />
+        </Grid>
+        <Grid item xs={12} md={3}>
+          <MetricCard title="Walkthrough Step" value={`${walkthroughStep + 1} / ${DEMO_WALKTHROUGH.length}`} subtext="Release candidate flow" icon={<History />} />
+        </Grid>
+        <Grid item xs={12} md={3}>
+          <MetricCard title="Demo Readiness" value="RC1 READY" subtext="Reports and reset paths wired" icon={<CheckCircle />} />
+        </Grid>
+      </Grid>
+
+      <Grid container spacing={3} sx={{ mb: 3 }}>
+        <Grid item xs={12} md={7}>
+          <Paper sx={{ p: 3, border: '1px solid rgba(255,255,255,0.06)', borderRadius: 2, height: '100%' }}>
+            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+              Guided walkthrough
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Follow the same flow every time: reset, load, underwrite, and review.
+            </Typography>
+            <Grid container spacing={2}>
+              {DEMO_WALKTHROUGH.map((step, index) => (
+                <Grid item xs={12} sm={6} key={step.title}>
+                  <Card
+                    variant="outlined"
+                    sx={{
+                      height: '100%',
+                      borderColor: walkthroughStep === index ? 'primary.main' : 'rgba(255,255,255,0.08)',
+                      bgcolor: walkthroughStep === index ? 'rgba(66,133,244,0.08)' : 'transparent'
+                    }}
+                  >
+                    <CardContent sx={{ p: 2.25, '&:last-child': { pb: 2.25 } }}>
+                      <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={2} sx={{ mb: 1 }}>
+                        <Box>
+                          <Typography variant="subtitle2" fontWeight="700">{step.title}</Typography>
+                          <Typography variant="caption" color="text.secondary">{step.description}</Typography>
+                        </Box>
+                        <Chip size="small" label={`Step ${index + 1}`} color={walkthroughStep === index ? 'primary' : 'default'} variant="outlined" />
+                      </Stack>
+                      <Button size="small" variant={walkthroughStep === index ? 'contained' : 'outlined'} onClick={() => { setWalkthroughStep(index); ui.setActivePage(step.page); }}>
+                        Open {step.page}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          </Paper>
+        </Grid>
+
+        <Grid item xs={12} md={5}>
+          <Paper sx={{ p: 3, border: '1px solid rgba(255,255,255,0.06)', borderRadius: 2, height: '100%' }}>
+            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+              Demo persona launcher
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Pick a preseeded borrower and move the portal into the matching underwriting story.
+            </Typography>
+            <Stack spacing={1.5}>
+              {DEMO_PERSONAS.map((persona) => (
+                <Card
+                  key={persona.name}
+                  variant="outlined"
+                  sx={{
+                    borderColor: selectedPersona === persona.name ? 'primary.main' : 'rgba(255,255,255,0.08)',
+                    bgcolor: selectedPersona === persona.name ? 'rgba(66,133,244,0.05)' : 'transparent',
+                    cursor: 'pointer'
+                  }}
+                  onClick={() => {
+                    setSelectedPersona(persona.name);
+                    setSelectedScenario(persona.scenario);
+                  }}
+                >
+                  <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+                    <Stack direction="row" justifyContent="space-between" spacing={2} sx={{ mb: 1 }}>
+                      <Box>
+                        <Typography variant="subtitle2" fontWeight="700">{persona.name}</Typography>
+                        <Typography variant="caption" color="text.secondary">{persona.industry} | {persona.location}</Typography>
+                      </Box>
+                      <Chip size="small" label={persona.scenario} color="secondary" variant="outlined" />
+                    </Stack>
+                    <Typography variant="body2" sx={{ mb: 1 }}>
+                      {persona.intent}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {persona.tone}
+                    </Typography>
+                    <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
+                      <Button size="small" variant="contained" disabled={busyAction === 'launch'} onClick={() => launchDemo(persona.name, persona.scenario)}>
+                        Launch
+                      </Button>
+                      <Button size="small" variant="outlined" onClick={() => ui.setActivePage('Customer Onboarding')}>
+                        Inspect
+                      </Button>
+                    </Stack>
+                  </CardContent>
+                </Card>
+              ))}
+            </Stack>
+          </Paper>
+        </Grid>
+      </Grid>
+
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={7}>
+          <Paper sx={{ p: 3, border: '1px solid rgba(255,255,255,0.06)', borderRadius: 2, height: '100%' }}>
+            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+              Sample report pack
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Export branded markdown samples for the current RC1 state. They can be attached directly to the hackathon demo handoff.
+            </Typography>
+            <Grid container spacing={2}>
+              {DEMO_REPORTS.map((report) => (
+                <Grid item xs={12} sm={6} key={report.label}>
+                  <Card variant="outlined" sx={{ height: '100%' }}>
+                    <CardContent sx={{ p: 2.25, '&:last-child': { pb: 2.25 } }}>
+                      <Typography variant="subtitle2" fontWeight="700" sx={{ mb: 0.5 }}>{report.label}</Typography>
+                      <Typography variant="caption" color="text.secondary">{report.description}</Typography>
+                      <Button
+                        fullWidth
+                        sx={{ mt: 2 }}
+                        variant="outlined"
+                        startIcon={<FileDownload />}
+                        disabled={busyAction === report.reportType}
+                        onClick={() => generateReport(report.reportType, report.fileName)}
+                      >
+                        Download sample
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          </Paper>
+        </Grid>
+
+        <Grid item xs={12} md={5}>
+          <Paper sx={{ p: 3, border: '1px solid rgba(255,255,255,0.06)', borderRadius: 2, height: '100%' }}>
+            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+              Release validation checklist
+            </Typography>
+            <Stack spacing={1.25} sx={{ mt: 2 }}>
+              {[
+                'Demo persona and scenario can be switched without leaving the portal.',
+                'Reset restores the control plane and downstream domain data.',
+                'Reports can be exported directly from the active demo state.',
+                'Onboarding, CAM, and executive review pages remain one click away.'
+              ].map((item) => (
+                <Box key={item} sx={{ display: 'flex', gap: 1.2, alignItems: 'flex-start' }}>
+                  <CheckCircle sx={{ fontSize: 18, color: 'success.main', mt: 0.2 }} />
+                  <Typography variant="body2" color="text.secondary">{item}</Typography>
+                </Box>
+              ))}
+            </Stack>
+            <Divider sx={{ my: 2.5 }} />
+            <Button fullWidth variant="contained" startIcon={<AutoAwesome />} onClick={() => ui.setActivePage('Executive Dashboard')}>
+              Open executive review
+            </Button>
           </Paper>
         </Grid>
       </Grid>
@@ -997,6 +1444,7 @@ export default function App() {
 
   const navItems = [
     { name: 'Dashboard', icon: <DashboardIcon />, permission: 'dashboard' },
+    { name: 'Demo Studio', icon: <RocketLaunch />, permission: 'dashboard' },
     { name: 'Customer Onboarding', icon: <People />, permission: 'customer_management' },
     { name: 'CKYC', icon: <PersonSearch />, permission: 'ckyc' },
     { name: 'GST Analysis', icon: <Receipt />, permission: 'gst' },
@@ -1004,14 +1452,10 @@ export default function App() {
     { name: 'EPFO', icon: <WorkOutline />, permission: 'epfo' },
     { name: 'MCA', icon: <Business />, permission: 'mca' },
     { name: 'Financial Health Card', icon: <Assessment />, permission: 'financial_health_card' },
-    { name: 'AI Credit Engine', icon: <Memory />, permission: 'credit_engine' },
-    { name: 'CAM Generator', icon: <Description />, permission: 'cam' },
-    { name: 'OCEN Marketplace', icon: <ShoppingCart />, permission: 'ocen' },
-    { name: 'RBI Fraud Registry', icon: <Gavel />, permission: 'rbi_fraud' },
+    { name: 'Credit Decision', icon: <Memory />, permission: 'credit_engine' },
+    { name: 'CAM', icon: <Description />, permission: 'cam' },
     { name: 'Executive Dashboard', icon: <BarChart />, permission: 'reports' },
-    { name: 'Enterprise Simulation Engine', icon: <SettingsInputComponent />, permission: 'simulation_engine' },
     { name: 'Reports', icon: <FolderZip />, permission: 'reports' },
-    { name: 'Administration', icon: <SupervisorAccount />, permission: 'administration' },
     { name: 'Settings', icon: <SettingsIcon />, permission: 'settings' }
   ];
 
@@ -1205,12 +1649,16 @@ export default function App() {
               <Container maxWidth="xl" disableGutters>
                 {ui.activePage === 'Dashboard' ? (
                   <DashboardPage />
+                ) : ui.activePage === 'Demo Studio' ? (
+                  <DemoStudioPage />
                 ) : ui.activePage === 'Profile' ? (
                   <ProfilePage />
-                ) : ui.activePage === 'Enterprise Simulation Engine' ? (
-                  <SimulationPage />
+                ) : ui.activePage === 'Financial Health Card' ? (
+                  <FinancialHealthCardPage />
+                ) : ui.activePage === 'Credit Decision' ? (
+                  <CreditDecisionPage />
                 ) : ui.activePage === 'Reports' ? (
-                  <EventEnginePage />
+                  <ReportsPage />
                 ) : ui.activePage === 'Customer Onboarding' ? (
                   <CustomerOnboardingPage />
                 ) : ui.activePage === 'CKYC' ? (
@@ -1223,10 +1671,18 @@ export default function App() {
                   <EPFOPage />
                 ) : ui.activePage === 'MCA' ? (
                   <MCAPage />
-                ) : ui.activePage === 'CAM Generator' ? (
+                ) : ui.activePage === 'CAM' ? (
                   <CAMPage />
                 ) : ui.activePage === 'Executive Dashboard' ? (
                   <ExecutiveCommandCenterPage />
+                ) : ui.activePage === 'Settings' ? (
+                  <SettingsPage />
+                ) : ui.activePage === 'Enterprise Simulation Engine' ? (
+                  <SimulationPage />
+                ) : ui.activePage === 'Workflow Orchestrator' ? (
+                  <OrchestratorPage />
+                ) : ui.activePage === 'Event Engine' ? (
+                  <EventEnginePage />
                 ) : (
                   <PagePlaceholder title={ui.activePage} />
                 )}
@@ -1255,6 +1711,18 @@ export default function App() {
           </Alert>
         </Snackbar>
       )}
+
+      <AiBankingCopilotPanel
+        isAuthenticated={ui.isAuthenticated}
+        role={ui.user?.role || 'DEMO_USER'}
+        activePage={ui.activePage}
+        activePersona={ui.activePersona}
+        activeScenario={ui.activeScenario}
+        activeDataset={ui.activeDataset}
+        userName={ui.user?.full_name}
+        onNavigate={ui.setActivePage}
+        onNotify={ui.showNotification}
+      />
 
     </ThemeProvider>
   );

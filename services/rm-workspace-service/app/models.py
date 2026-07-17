@@ -1,12 +1,13 @@
+from services.shared.database import Base
 import datetime
 from sqlalchemy import Column, String, Integer, DateTime, Boolean, ForeignKey, Float
-from sqlalchemy.orm import relationship, declarative_base
+from sqlalchemy.orm import relationship
 
-Base = declarative_base()
 
 class RMTask(Base):
     __tablename__ = "rm_tasks"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     customer_id = Column(Integer, nullable=False, index=True)
     title = Column(String(200), nullable=False)
@@ -18,7 +19,8 @@ class RMTask(Base):
 
 class RMLead(Base):
     __tablename__ = "rm_leads"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     company_name = Column(String(200), nullable=False)
     contact_person = Column(String(100), nullable=False)
@@ -29,7 +31,8 @@ class RMLead(Base):
 
 class RMAlert(Base):
     __tablename__ = "rm_alerts"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     customer_id = Column(Integer, nullable=False, index=True)
     alert_type = Column(String(50), nullable=False) # e.g. "GST_DELAY", "LIQUIDITY_DROP", "CONSENT_EXPIRY"
@@ -40,7 +43,8 @@ class RMAlert(Base):
 
 class RMInteraction(Base):
     __tablename__ = "rm_interactions"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     customer_id = Column(Integer, nullable=False, index=True)
     staff_id = Column(String(100), nullable=False)

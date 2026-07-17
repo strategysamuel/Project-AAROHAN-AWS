@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 import datetime
 from typing import List, Optional
 
@@ -17,8 +17,7 @@ class RMTaskResponse(RMTaskBase):
     id: int
     created_at: datetime.datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class RMLeadBase(BaseModel):
     company_name: str
@@ -34,8 +33,7 @@ class RMLeadResponse(RMLeadBase):
     id: int
     created_at: datetime.datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class RMAlertResponse(BaseModel):
     id: int
@@ -46,8 +44,7 @@ class RMAlertResponse(BaseModel):
     is_read: bool
     created_at: datetime.datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class RMInteractionCreate(BaseModel):
     customer_id: int
@@ -59,8 +56,7 @@ class RMInteractionResponse(RMInteractionCreate):
     id: int
     created_at: datetime.datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class AssistantChatRequest(BaseModel):
     prompt: str

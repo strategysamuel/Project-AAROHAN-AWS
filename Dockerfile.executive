@@ -1,0 +1,42 @@
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install poetry
+RUN pip install --no-cache-dir poetry
+
+# Configure poetry
+RUN poetry config virtualenvs.create false
+
+# Copy dependency files
+COPY pyproject.toml /app/
+
+# Install dependencies
+RUN poetry install --no-interaction --no-ansi --only main --no-root
+
+# Copy application
+COPY . /app/
+
+# Set environment
+ENV PYTHONPATH="/app/services/ese-core"
+ENV INTEGRATION_PROFILE="DEMO"
+ENV ACTIVE_DATASET="msme"
+
+# Copy startup script
+COPY start-executive-intelligence.sh /app/start-executive-intelligence.sh
+RUN chmod +x /app/start-executive-intelligence.sh
+
+# Health check for exec-service
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD curl -f http://localhost:9009/livez || exit 1
+
+# Expose port
+EXPOSE 9009
+
+CMD ["/app/start-executive-intelligence.sh"]

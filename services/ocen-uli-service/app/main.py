@@ -1077,7 +1077,7 @@ async def get_audit_logs(
 
 @app.get("/healthz", summary="Liveness Probe", tags=["Health"])
 async def healthz():
-    return {"status": "UP", "service": "ocen-uli-service", "version": "2.0.0"}
+    return {"status": "healthy", "service": "ocen-uli-service", "version": "2.0.0"}
 
 
 @app.get("/readyz", summary="Readiness Probe", tags=["Health"])

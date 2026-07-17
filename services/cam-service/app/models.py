@@ -1,3 +1,4 @@
+from services.shared.database import Base
 """
 AAROHAN CAM Service – Database Models (v2)
 ==========================================
@@ -14,15 +15,14 @@ def utc_now():
     return datetime.datetime.now(datetime.timezone.utc)
 
 from sqlalchemy import Column, String, Integer, DateTime, Boolean, Float, Text, ForeignKey
-from sqlalchemy.orm import relationship, declarative_base
-
-Base = declarative_base()
+from sqlalchemy.orm import relationship
 
 
 class CAMRecord(Base):
     """Master CAM record storing all 18 sections and scoring."""
     __tablename__ = "cam_records"
-
+    __table_args__ = {'extend_existing': True}
+    
     id = Column(Integer, primary_key=True, index=True)
     customer_id = Column(Integer, nullable=False, index=True)
     cam_reference = Column(String(50), unique=True, nullable=False, index=True)
@@ -85,7 +85,8 @@ class CAMRecord(Base):
 class CAMVersion(Base):
     """Section snapshots per version."""
     __tablename__ = "cam_versions"
-
+    __table_args__ = {'extend_existing': True}
+    
     id = Column(Integer, primary_key=True, index=True)
     cam_id = Column(Integer, ForeignKey("cam_records.id"), nullable=False)
     version_num = Column(Integer, nullable=False)
@@ -107,7 +108,8 @@ class CAMVersion(Base):
 class CAMApprovalLog(Base):
     """Multi-level approval chain."""
     __tablename__ = "cam_approvals"
-
+    __table_args__ = {'extend_existing': True}
+    
     id = Column(Integer, primary_key=True, index=True)
     cam_id = Column(Integer, ForeignKey("cam_records.id"), nullable=False)
     approver_id = Column(String(100), nullable=False)
@@ -123,7 +125,8 @@ class CAMApprovalLog(Base):
 class CAMTemplate(Base):
     """Template registry for bank-specific CAM formats."""
     __tablename__ = "cam_templates"
-
+    __table_args__ = {'extend_existing': True}
+    
     id = Column(Integer, primary_key=True, index=True)
     template_key = Column(String(50), unique=True, nullable=False)
     template_name = Column(String(200), nullable=False)
@@ -140,7 +143,8 @@ class CAMTemplate(Base):
 class CAMConfig(Base):
     """Service-level configuration."""
     __tablename__ = "cam_config"
-
+    __table_args__ = {'extend_existing': True}
+    
     id = Column(Integer, primary_key=True, index=True)
     default_template = Column(String(50), default="IDBI_BANK")
     auto_generate_on_ocen = Column(Boolean, default=True)

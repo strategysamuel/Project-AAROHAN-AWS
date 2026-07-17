@@ -17,12 +17,14 @@ RUN poetry config virtualenvs.create false
 COPY pyproject.toml /app/
 
 # Install dependencies (ignoring dev group to keep image size small)
-RUN poetry install --no-interaction --no-ansi --only main
+RUN poetry install --no-interaction --no-ansi --only main --no-root
 
 # Copy full application
 COPY . /app/
 
 ENV PYTHONPATH="/app/services/ese-core"
 
-# Default entrypoint (will be overridden in docker-compose.ese.yml)
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 CMD python -c "import os,urllib.request; port=os.environ.get('PORT','8000'); urllib.request.urlopen(f'http://127.0.0.1:{port}/livez')"
+
+# Default entrypoint (launches the internal service processes and the Cloud Run gateway)
+CMD ["sh", "/app/start-demo-platform.sh"]

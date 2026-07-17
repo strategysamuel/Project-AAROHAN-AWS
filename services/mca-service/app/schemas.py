@@ -88,7 +88,7 @@ class MCACompanyProfileResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 class MCASyncRequest(BaseModel):
-    cin: str = Field(..., pattern=r"^[U|L][0-9]{5}[A-Z]{2}[0-9]{4}[A-Z]{3}[0-9]{6}$")
+    cin: str = Field(..., pattern=r"^[UL][0-9]{5}[A-Z]{2}[0-9]{4}[A-Z]{1}[0-9]{6}$")
 
 class MCAOverrideRequest(BaseModel):
     governance_score: float

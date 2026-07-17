@@ -1,5 +1,6 @@
 import logging
 import sys
+import datetime
 import time
 import uuid
 from typing import Any, Dict, List
@@ -121,7 +122,7 @@ async def login(payload: LoginRequest, db: Session = Depends(get_db)):
     refresh_record = RefreshToken(
         user_id=user.id,
         token=refresh,
-        expires_at=time.time() + (7 * 86400)
+        expires_at=datetime.datetime.utcnow() + datetime.timedelta(days=7)
     )
     db.add(refresh_record)
     db.commit()
@@ -204,3 +205,11 @@ async def test_permission(token_data: TokenData = Depends(PermissionChecker("loa
 @app.get("/livez")
 async def livez():
     return {"status": "UP"}
+
+@app.get("/health")
+async def health():
+    return {"status": "UP"}
+
+@app.get("/readiness")
+async def readiness():
+    return {"status": "READY"}

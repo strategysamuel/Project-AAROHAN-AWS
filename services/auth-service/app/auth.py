@@ -8,7 +8,7 @@ from passlib.context import CryptContext
 from pydantic import BaseModel
 
 # Password Hash Context
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 
 # JWT Sign Parameters (Injectable via Secret Manager in production)
 SECRET_KEY = "aarohan-secure-encryption-key-for-local-development"

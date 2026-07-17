@@ -333,7 +333,7 @@ def process_cash_flow_analytics(customer_id: int, db: Session):
     analytics.banking_stability_score = stability_score
     analytics.overall_score = max(0.0, 100.0 - len(risks) * 15)
     analytics.ai_insights = " | ".join(insights)
-    analytics.last_calculated_at = datetime.datetime.utcnow()
+    analytics.last_calculated_at = datetime.datetime.now(datetime.UTC)
     
     db.commit()
     
@@ -355,7 +355,7 @@ def process_cash_flow_analytics(customer_id: int, db: Session):
 @app.post("/aa/consents", response_model=AAConsentResponse, status_code=status.HTTP_201_CREATED)
 async def generate_consent_request(payload: AAConsentCreateRequest, db: Session = Depends(get_db)):
     consent_id = f"consent_art_{uuid.uuid4().hex[:12]}"
-    validity_date = datetime.datetime.utcnow() + datetime.timedelta(days=payload.validity_days)
+    validity_date = datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=payload.validity_days)
     
     consent = AAConsent(
         customer_id=payload.customer_id,
@@ -440,7 +440,7 @@ async def discover_accounts(customer_id: int, payload: DiscoveryRequest):
             balance=a["balance"],
             currency=a["currency"],
             is_active=True,
-            last_synced_at=datetime.datetime.utcnow()
+            last_synced_at=datetime.datetime.now(datetime.UTC)
         ) for idx, a in enumerate(accounts)
     ]
 
@@ -508,7 +508,7 @@ async def sync_financial_records(customer_id: int, payload: SyncRequest, db: Ses
             )
             db.add(t_record)
             
-        a.last_synced_at = datetime.datetime.utcnow()
+        a.last_synced_at = datetime.datetime.now(datetime.UTC)
         
     db.commit()
     

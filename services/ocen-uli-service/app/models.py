@@ -1,3 +1,4 @@
+from services.shared.database import Base
 """
 AAROHAN OCEN Marketplace – Database Models (v2)
 ================================================
@@ -14,9 +15,7 @@ def utc_now():
     return datetime.datetime.now(datetime.timezone.utc)
 
 from sqlalchemy import Column, String, Integer, DateTime, Boolean, ForeignKey, Float, Text
-from sqlalchemy.orm import relationship, declarative_base
-
-Base = declarative_base()
+from sqlalchemy.orm import relationship
 
 
 # ---------------------------------------------------------------------------
@@ -24,7 +23,8 @@ Base = declarative_base()
 # ---------------------------------------------------------------------------
 class Lender(Base):
     __tablename__ = "ocen_lenders"
-    __table_args__ = {"extend_existing": True}
+    __table_args__ = {'extend_existing': True}
+    {"extend_existing": True}
 
     id = Column(Integer, primary_key=True, index=True)
     lender_id = Column(String(50), unique=True, nullable=False, index=True)
@@ -55,7 +55,8 @@ class Lender(Base):
 # ---------------------------------------------------------------------------
 class LoanProduct(Base):
     __tablename__ = "ocen_loan_products"
-
+    __table_args__ = {'extend_existing': True}
+    
     id = Column(Integer, primary_key=True, index=True)
     product_code = Column(String(50), unique=True, nullable=False, index=True)
     product_name = Column(String(200), nullable=False)
@@ -68,7 +69,8 @@ class LoanProduct(Base):
 # ---------------------------------------------------------------------------
 class Partner(Base):
     __tablename__ = "ocen_partners"
-    __table_args__ = {"extend_existing": True}
+    __table_args__ = {'extend_existing': True}
+    {"extend_existing": True}
 
     id = Column(Integer, primary_key=True, index=True)
     partner_id = Column(String(50), unique=True, nullable=False, index=True)
@@ -82,7 +84,8 @@ class Partner(Base):
 # ---------------------------------------------------------------------------
 class LoanApplication(Base):
     __tablename__ = "ocen_loan_applications"
-    __table_args__ = {"extend_existing": True}
+    __table_args__ = {'extend_existing': True}
+    {"extend_existing": True}
 
     id = Column(Integer, primary_key=True, index=True)
     customer_id = Column(Integer, nullable=False, index=True)
@@ -111,7 +114,8 @@ class LoanApplication(Base):
 # ---------------------------------------------------------------------------
 class LoanOffer(Base):
     __tablename__ = "ocen_loan_offers"
-    __table_args__ = {"extend_existing": True}
+    __table_args__ = {'extend_existing': True}
+    {"extend_existing": True}
 
     id = Column(Integer, primary_key=True, index=True)
     application_id = Column(Integer, ForeignKey("ocen_loan_applications.id"), nullable=False)
@@ -146,7 +150,8 @@ class LoanOffer(Base):
 # ---------------------------------------------------------------------------
 class MarketplaceMatch(Base):
     __tablename__ = "ocen_marketplace_matches"
-
+    __table_args__ = {'extend_existing': True}
+    
     id = Column(Integer, primary_key=True, index=True)
     application_id = Column(Integer, ForeignKey("ocen_loan_applications.id"), nullable=False)
     lenders_screened = Column(Integer, default=0)
@@ -164,7 +169,8 @@ class MarketplaceMatch(Base):
 # ---------------------------------------------------------------------------
 class MarketplaceConfig(Base):
     __tablename__ = "ocen_marketplace_config"
-
+    __table_args__ = {'extend_existing': True}
+    
     id = Column(Integer, primary_key=True, index=True)
     active_adapter = Column(String(50), default="SIMULATION")
     match_params = Column(Text, nullable=True)              # JSON
@@ -176,7 +182,8 @@ class MarketplaceConfig(Base):
 # ---------------------------------------------------------------------------
 class AuditLog(Base):
     __tablename__ = "ocen_audit_logs"
-    __table_args__ = {"extend_existing": True}
+    __table_args__ = {'extend_existing': True}
+    {"extend_existing": True}
 
     id = Column(Integer, primary_key=True, index=True)
     correlation_id = Column(String(100), index=True)

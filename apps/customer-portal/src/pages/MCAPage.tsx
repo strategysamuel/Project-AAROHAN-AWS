@@ -11,6 +11,7 @@ import {
   TrendingUp, AccountBalance, Gavel, History, Timeline, ErrorOutline,
   AssignmentInd, Business, DateRange, ShowChart, People
 } from '@mui/icons-material';
+import { apiUrl } from '../lib/api';
 
 interface MCADirector {
   id: number;
@@ -83,7 +84,7 @@ interface MCACompanyProfile {
   roc: string;
 }
 
-const API = 'http://localhost:8000'; // Gateway
+const API = apiUrl(''); // Gateway
 
 const MCAPage: React.FC = () => {
   const [tabIndex, setTabIndex] = useState(0);
@@ -129,24 +130,22 @@ const MCAPage: React.FC = () => {
 
         // Fetch children
         const dirRes = await fetch(`${API}/mca/directors/99`);
-        if (dirRes.ok) setDirectors(await dirRes.json());
+        if (!dirRes.ok) throw new Error(); setDirectors(await dirRes.json());
 
         const chgRes = await fetch(`${API}/mca/charges/99`);
-        if (chgRes.ok) setCharges(await chgRes.json());
+        if (!chgRes.ok) throw new Error(); setCharges(await chgRes.json());
 
         const filRes = await fetch(`${API}/mca/filings/99`);
-        if (filRes.ok) setFilings(await filRes.json());
+        if (!filRes.ok) throw new Error(); setFilings(await filRes.json());
 
         const finRes = await fetch(`${API}/mca/financials/99`);
-        if (finRes.ok) setFinancials(await finRes.json());
+        if (!finRes.ok) throw new Error(); setFinancials(await finRes.json());
 
         const anlRes = await fetch(`${API}/mca/analytics/99`);
-        if (anlRes.ok) setAnalytics(await anlRes.json());
+        if (!anlRes.ok) throw new Error(); setAnalytics(await anlRes.json());
 
         setSuccess('✓ Ministry of Corporate Affairs (MCA) sync & governance spreading completed!');
-      } else {
-        setError('Corporate CIN format check failed. Enter valid 21-character Indian corporate code.');
-      }
+      } else { throw new Error(); }
     } catch {
       // Mock Fallbacks
       setProfile({

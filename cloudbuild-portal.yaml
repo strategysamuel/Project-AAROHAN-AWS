@@ -1,0 +1,19 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-f'
+      - 'Dockerfile.portal'
+      - '--build-arg'
+      - 'VITE_API_BASE_URL=https://aarohan-demo-platform-679889922969.asia-south1.run.app'
+      - '--build-arg'
+      - 'VITE_AUTH_API_BASE_URL=https://aarohan-demo-platform-679889922969.asia-south1.run.app'
+      - '-t'
+      - 'asia-south1-docker.pkg.dev/aarohan-msme-platform/aarohan/aarohan-portal:latest'
+      - '.'
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'asia-south1-docker.pkg.dev/aarohan-msme-platform/aarohan/aarohan-portal:latest']
+
+images:
+  - 'asia-south1-docker.pkg.dev/aarohan-msme-platform/aarohan/aarohan-portal:latest'

@@ -11,6 +11,7 @@ import {
   TrendingUp, AccountBalance, Gavel, History, Timeline, ErrorOutline,
   CompareArrows, AssignmentInd, Security
 } from '@mui/icons-material';
+import { apiUrl } from '../lib/api';
 
 interface AAConsent {
   id: number;
@@ -88,7 +89,7 @@ interface AAAnalytics {
   ai_insights: string;
 }
 
-const API = 'http://localhost:8000'; // Gateway routing to local microservices
+const API = apiUrl(''); // Gateway routing to local microservices
 
 const AAPage: React.FC = () => {
   const [tabIndex, setTabIndex] = useState(0);
@@ -116,16 +117,16 @@ const AAPage: React.FC = () => {
     setLoading(true);
     try {
       const cRes = await fetch(`${API}/aa/consents?customer_id=99`);
-      if (cRes.ok) setConsents(await cRes.json());
+      if (!cRes.ok) throw new Error(); setConsents(await cRes.json());
 
       const aRes = await fetch(`${API}/aa/accounts/99`);
-      if (aRes.ok) setLinkedAccounts(await aRes.json());
+      if (!aRes.ok) throw new Error(); setLinkedAccounts(await aRes.json());
 
       const txRes = await fetch(`${API}/aa/financial-info/99`);
-      if (txRes.ok) setTransactions(await txRes.json());
+      if (!txRes.ok) throw new Error(); setTransactions(await txRes.json());
 
       const anRes = await fetch(`${API}/aa/analytics/99`);
-      if (anRes.ok) setAnalytics(await anRes.json());
+      if (!anRes.ok) throw new Error(); setAnalytics(await anRes.json());
     } catch {
       // Mock Fallbacks
       setConsents([

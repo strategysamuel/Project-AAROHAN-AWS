@@ -1,12 +1,13 @@
+from services.shared.database import Base
 import datetime
 from sqlalchemy import Column, String, Integer, DateTime, Boolean, ForeignKey, Float
-from sqlalchemy.orm import relationship, declarative_base
+from sqlalchemy.orm import relationship
 
-Base = declarative_base()
 
 class EWSWatchlist(Base):
     __tablename__ = "ews_watchlist"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     customer_id = Column(Integer, unique=True, nullable=False, index=True)
     risk_level = Column(String(50), default="MEDIUM") # HIGH, MEDIUM, LOW
@@ -15,7 +16,8 @@ class EWSWatchlist(Base):
 
 class EWSAlert(Base):
     __tablename__ = "ews_alerts"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     customer_id = Column(Integer, nullable=False, index=True)
     trigger_rule = Column(String(100), nullable=False) # e.g. "RULE_LIQUIDITY_DROP"
@@ -25,7 +27,8 @@ class EWSAlert(Base):
 
 class EWSRiskCase(Base):
     __tablename__ = "ews_risk_cases"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     customer_id = Column(Integer, nullable=False, index=True)
     status = Column(String(50), default="OPEN") # OPEN, ESCALATED, RESOLVED

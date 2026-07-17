@@ -17,8 +17,7 @@ class AAAdapter(abc.ABC):
 
 class SimulationAAAdapter(AAAdapter):
     def discover_financial_accounts(self, customer_mobile: str) -> List[Dict[str, Any]]:
-        engine = create_engine("sqlite:///./aarohan_local.db")
-        SessionLocal = sessionmaker(bind=engine)
+        from app.database import SessionLocal
         db = SessionLocal()
         accounts = []
         try:
@@ -83,8 +82,7 @@ class SimulationAAAdapter(AAAdapter):
         ]
 
     def fetch_transaction_ledger(self, account_ref_num: str) -> List[Dict[str, Any]]:
-        engine = create_engine("sqlite:///./aarohan_local.db")
-        SessionLocal = sessionmaker(bind=engine)
+        from app.database import SessionLocal
         db = SessionLocal()
         ledger = []
         try:
@@ -107,7 +105,7 @@ class SimulationAAAdapter(AAAdapter):
                 try:
                     txn_date = datetime.datetime.fromisoformat(txn_date_str.replace("Z", ""))
                 except Exception:
-                    txn_date = datetime.datetime.utcnow() - datetime.timedelta(days=10)
+                    txn_date = datetime.datetime.now(datetime.UTC) - datetime.timedelta(days=10)
                 
                 ledger.append({
                     "txn_ref_num": txn_ref,
@@ -124,7 +122,7 @@ class SimulationAAAdapter(AAAdapter):
             db.close()
             
         # Fallback default transactions
-        base_date = datetime.datetime.utcnow() - datetime.timedelta(days=90)
+        base_date = datetime.datetime.now(datetime.UTC) - datetime.timedelta(days=90)
         for i in range(12):
             # Inflow
             ledger.append({
@@ -158,7 +156,7 @@ class SandboxAAAdapter(AAAdapter):
         ]
 
     def fetch_transaction_ledger(self, account_ref_num: str) -> List[Dict[str, Any]]:
-        base_date = datetime.datetime.utcnow() - datetime.timedelta(days=10)
+        base_date = datetime.datetime.now(datetime.UTC) - datetime.timedelta(days=10)
         return [
             {
                 "txn_ref_num": "TXN-SAND-01",

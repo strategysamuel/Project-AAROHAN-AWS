@@ -1,12 +1,13 @@
+from services.shared.database import Base
 import datetime
 from sqlalchemy import Column, String, Integer, DateTime, Boolean, ForeignKey, Float, Text
-from sqlalchemy.orm import relationship, declarative_base
+from sqlalchemy.orm import relationship
 
-Base = declarative_base()
 
 class AICreditDecision(Base):
     __tablename__ = "ai_credit_decisions"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     customer_id = Column(Integer, nullable=False, index=True)
     recommendation = Column(String(50), nullable=False) # APPROVED, REJECTED, PENDING_HUMAN_REVIEW, MANUAL_REVIEW, APPROVE_WITH_CONDITIONS
@@ -46,7 +47,8 @@ class AICreditDecision(Base):
 
 class HumanApprovalLog(Base):
     __tablename__ = "human_approval_logs"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     decision_id = Column(Integer, ForeignKey("ai_credit_decisions.id"), nullable=False)
     approver_id = Column(String(100), nullable=False) # Staff/Underwriter ID
@@ -58,7 +60,8 @@ class HumanApprovalLog(Base):
 
 class CreditEngineConfig(Base):
     __tablename__ = "credit_engine_config"
-    
+    __table_args__ = {'extend_existing': True}
+        
     id = Column(Integer, primary_key=True, index=True)
     active_adapter = Column(String(100), default="RULE_ENGINE") # RULE_ENGINE, VERTEX_AI, CUSTOM_ML, OPENAI_LLM
     risk_thresholds = Column(Text, nullable=True) # JSON string for thresholds
@@ -73,6 +76,7 @@ class CreditEngineConfig(Base):
 class FinancialHealthCard(Base):
     __tablename__ = "fhc_cards"
     __table_args__ = {'extend_existing': True}
+    {'extend_existing': True}
     id = Column(Integer, primary_key=True)
     customer_id = Column(Integer, unique=True, index=True)
     overall_score = Column(Float)
@@ -91,6 +95,7 @@ class FinancialHealthCard(Base):
 class OnboardingCustomer(Base):
     __tablename__ = "onboarding_customers"
     __table_args__ = {'extend_existing': True}
+    {'extend_existing': True}
     id = Column(Integer, primary_key=True)
     legal_name = Column(String)
     mobile_number = Column(String)
@@ -101,6 +106,7 @@ class OnboardingCustomer(Base):
 class OnboardingBusiness(Base):
     __tablename__ = "onboarding_businesses"
     __table_args__ = {'extend_existing': True}
+    {'extend_existing': True}
     id = Column(Integer, primary_key=True)
     customer_id = Column(Integer)
     trade_name = Column(String)
@@ -116,6 +122,7 @@ class OnboardingBusiness(Base):
 class CKYCRecord(Base):
     __tablename__ = "ckyc_records"
     __table_args__ = {'extend_existing': True}
+    {'extend_existing': True}
     id = Column(Integer, primary_key=True)
     customer_id = Column(Integer)
     ckyc_number = Column(String)
@@ -125,6 +132,7 @@ class CKYCRecord(Base):
 class CKYCVerificationLog(Base):
     __tablename__ = "ckyc_verification_logs"
     __table_args__ = {'extend_existing': True}
+    {'extend_existing': True}
     id = Column(Integer, primary_key=True)
     customer_id = Column(Integer)
     match_confidence = Column(Float)
@@ -134,6 +142,7 @@ class CKYCVerificationLog(Base):
 class GSTAnalytics(Base):
     __tablename__ = "gst_analytics"
     __table_args__ = {'extend_existing': True}
+    {'extend_existing': True}
     id = Column(Integer, primary_key=True)
     profile_id = Column(Integer)
     compliance_score = Column(Float)
@@ -142,6 +151,7 @@ class GSTAnalytics(Base):
 class AAAnalytics(Base):
     __tablename__ = "aa_analytics"
     __table_args__ = {'extend_existing': True}
+    {'extend_existing': True}
     id = Column(Integer, primary_key=True)
     customer_id = Column(Integer)
     net_cash_flow = Column(Float)
@@ -152,6 +162,7 @@ class AAAnalytics(Base):
 class EPFOAnalytics(Base):
     __tablename__ = "epfo_analytics"
     __table_args__ = {'extend_existing': True}
+    {'extend_existing': True}
     id = Column(Integer, primary_key=True)
     profile_id = Column(Integer)
     compliance_score = Column(Float)
@@ -159,6 +170,7 @@ class EPFOAnalytics(Base):
 class MCACompanyProfile(Base):
     __tablename__ = "mca_company_profiles"
     __table_args__ = {'extend_existing': True}
+    {'extend_existing': True}
     id = Column(Integer, primary_key=True)
     customer_id = Column(Integer)
     company_status = Column(String)
@@ -166,6 +178,7 @@ class MCACompanyProfile(Base):
 class MCAGovernanceAnalytics(Base):
     __tablename__ = "mca_governance_analytics"
     __table_args__ = {'extend_existing': True}
+    {'extend_existing': True}
     id = Column(Integer, primary_key=True)
     company_id = Column(Integer)
     governance_score = Column(Float)
