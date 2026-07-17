@@ -1,0 +1,14 @@
+{
+  "scenario_id": "SCN-009",
+  "scenario_name": "MANUFACTURING_EXPANSION",
+  "description": "Established manufacturing company seeking loan for machinery expansion.",
+  "gst_compliance": "COMPLIANT",
+  "gst_revenue_multiplier": 1.25,
+  "cash_flow_stability": "STRONG",
+  "repayment_history": "CLEAN",
+  "rbi_fraud_status": "CLEAN",
+  "epfo_compliance": "COMPLIANT",
+  "mca_status": "ACTIVE_COMPLIANT",
+  "expected_credit_outcome": "APPROVED",
+  "explainability_tags": ["ASSET_EXPANSION_OK", "FHC_STRONG", "DSCR_OK"]
+}

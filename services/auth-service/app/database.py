@@ -34,46 +34,83 @@ def seed_database():
             
         logger.info("Seeding database with default roles & users...")
         
-        p_read = Permission(name="loan:read", description="Read loan files")
-        p_create = Permission(name="loan:create", description="Register new loan application")
-        p_approve = Permission(name="loan:approve", description="Approve credit limit applications")
+        # Create permissions corresponding to navigation modules
+        modules = [
+            "Dashboard", "Customer Management", "CKYC", "GST", "Account Aggregator",
+            "EPFO", "MCA", "Financial Health Card", "Credit Engine", "CAM", "OCEN",
+            "RBI Fraud", "Reports", "Administration", "Simulation Engine", "Settings"
+        ]
         
-        db.add_all([p_read, p_create, p_approve])
+        perms_dict = {}
+        for m in modules:
+            p = Permission(name=m.lower().replace(" ", "_"), description=f"Access to {m}")
+            db.add(p)
+            perms_dict[m] = p
+            
         db.commit()
         
+        # Helper to get permissions by names
+        def get_perms(names):
+            return [perms_dict[n] for n in names if n in perms_dict]
+        
         # 2. Configure roles
-        rm_role = Role(name="RELATIONSHIP_MANAGER", description="Sales Relationship Manager")
-        rm_role.permissions.extend([p_read, p_create])
+        admin_role = Role(name="ADMINISTRATOR", description="System Administrator")
+        admin_role.permissions.extend(list(perms_dict.values()))
         
-        credit_role = Role(name="CREDIT_ANALYST", description="Underwriting Analyst")
-        credit_role.permissions.extend([p_read, p_approve])
+        rm_role = Role(name="RELATIONSHIP_MANAGER", description="Relationship Manager")
+        rm_role.permissions.extend(get_perms(["Dashboard", "Customer Management", "CKYC", "GST", "Account Aggregator", "EPFO", "MCA", "Financial Health Card", "Reports"]))
         
-        customer_role = Role(name="CUSTOMER", description="MSME Client")
-        customer_role.permissions.append(p_read)
+        credit_role = Role(name="CREDIT_MANAGER", description="Credit Manager")
+        credit_role.permissions.extend(get_perms(["Dashboard", "Customer Management", "Financial Health Card", "Credit Engine", "CAM", "Reports"]))
         
-        db.add_all([rm_role, credit_role, customer_role])
+        ops_role = Role(name="OPERATIONS_OFFICER", description="Operations Officer")
+        ops_role.permissions.extend(get_perms(["Dashboard", "Customer Management", "OCEN", "Reports"]))
+        
+        exec_role = Role(name="EXECUTIVE", description="Executive Board Member")
+        exec_role.permissions.extend(get_perms(["Dashboard", "Reports"]))
+        
+        auditor_role = Role(name="AUDITOR", description="System Auditor")
+        auditor_role.permissions.extend(get_perms(["Dashboard", "Reports"]))
+        
+        trainer_role = Role(name="TRAINER", description="Platform Instructor/Trainer")
+        trainer_role.permissions.extend(get_perms(["Dashboard", "Customer Management", "Simulation Engine", "Reports"]))
+        
+        demo_role = Role(name="DEMO_USER", description="Standard Demo User")
+        demo_role.permissions.extend(get_perms(["Dashboard", "Customer Management", "Reports"]))
+        
+        db.add_all([admin_role, rm_role, credit_role, ops_role, exec_role, auditor_role, trainer_role, demo_role])
         db.commit()
         
         # 3. Create users
-        rm_user = User(
-            mobile_number="9876543210",
-            email="rm@aarohan.bank",
-            hashed_password=hash_password("AarohanPass123!"),
-            full_name="Rajesh RM Kumar",
-            role=rm_role
-        )
+        users_config = [
+            ("admin", "admin@aarohan.bank", "9900112233", "ADMINISTRATOR", "IT Operations", "Mumbai HQ"),
+            ("rm_user", "rm@aarohan.bank", "9876543210", "RELATIONSHIP_MANAGER", "MSME Sales", "Delhi Branch"),
+            ("credit_user", "credit@aarohan.bank", "9812345678", "CREDIT_MANAGER", "Underwriting", "Mumbai HQ"),
+            ("ops_user", "ops@aarohan.bank", "9823456789", "OPERATIONS_OFFICER", "Retail Ops", "Bangalore Branch"),
+            ("exec_user", "exec@aarohan.bank", "9834567890", "EXECUTIVE", "Management", "Mumbai HQ"),
+            ("auditor_user", "auditor@aarohan.bank", "9845678901", "AUDITOR", "Risk Audit", "Delhi Branch"),
+            ("trainer_user", "trainer@aarohan.bank", "9856789012", "TRAINER", "HR Enablement", "Pune Branch"),
+            ("demo_user", "demo@aarohan.bank", "9988776655", "DEMO_USER", "Showcase Sandbox", "Mumbai HQ")
+        ]
         
-        customer_user = User(
-            mobile_number="9988776655",
-            email="proprietor@msme.com",
-            hashed_password=hash_password("ClientPass123!"),
-            full_name="Amit MSME Patel",
-            role=customer_role
-        )
-        
-        db.add_all([rm_user, customer_user])
+        for username, email, mobile, role_name, dept, branch in users_config:
+            r = db.query(Role).filter(Role.name == role_name).first()
+            user = User(
+                username=username,
+                mobile_number=mobile,
+                email=email,
+                hashed_password=hash_password("AarohanPass123!"),
+                full_name=username.replace("_", " ").title(),
+                department=dept,
+                branch=branch,
+                avatar=f"/assets/avatars/{username}.png",
+                status="ACTIVE",
+                role=r
+            )
+            db.add(user)
+            
         db.commit()
-        logger.info("Database successfully seeded.")
+        logger.info("Database successfully seeded with 8 demo roles and users.")
     except Exception as e:
         logger.error(f"Error seeding database: {str(e)}")
         db.rollback()

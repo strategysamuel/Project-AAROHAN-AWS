@@ -1,0 +1,53 @@
+{
+  "dataset_name": "MSME Domain Dataset Package",
+  "dataset_version": "1.0.0",
+  "compatibility_version": "v3.0",
+  "generated_timestamp": "2026-07-09T06:53:10.679614Z",
+  "checksum": "5615f6062f4285db4d921f2b8d03172bc7209fdc36643e102fc167696be29f48",
+  "personas": [
+    "Priya Textile Works",
+    "Ramesh Kirana Store",
+    "Kavitha Exports Ltd",
+    "TechBoost Solutions",
+    "Deepa Handicrafts",
+    "Green Valley Farms"
+  ],
+  "scenarios": [
+    "EXCELLENT_BORROWER",
+    "GST_DEFAULTER",
+    "CASHFLOW_STRESS",
+    "EXPORT_SUCCESS",
+    "NEW_TO_CREDIT",
+    "RBI_BLACKLIST",
+    "EPFO_DEFAULT",
+    "HIGH_GROWTH_STARTUP",
+    "MANUFACTURING_EXPANSION",
+    "SEASONAL_BUSINESS"
+  ],
+  "supported_demo_journeys": [
+    "MSME Lending Journey",
+    "Customer Onboarding",
+    "Financial Health Card",
+    "Fraud Detection"
+  ],
+  "record_counts": {
+    "ese_customers": 6,
+    "ese_businesses": 6,
+    "ese_gst_records": 72,
+    "ese_transactions": 300,
+    "ese_ckyc_records": 6,
+    "ese_epfo_records": 6,
+    "ese_mca_records": 6,
+    "ese_loan_applications": 6
+  },
+  "seed_modules_used": [
+    "seed_customers",
+    "seed_businesses",
+    "seed_transactions",
+    "seed_gst",
+    "seed_ckyc",
+    "seed_epfo",
+    "seed_mca",
+    "seed_loans"
+  ]
+}

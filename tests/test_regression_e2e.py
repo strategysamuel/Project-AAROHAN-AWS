@@ -229,3 +229,64 @@ def test_ocen_uli_loan_disbursement_journey():
     res = client_ocen.post(f"/ocen/disburse/{app_id}")
     assert res.status_code == 200
     assert res.json()["status"] == "DISBURSED"
+
+def test_rbi_fraud_registry_blacklist():
+    # Clean up any existing customer with FRAUD1234F PAN or conflicting GSTIN
+    try:
+        from sqlalchemy import create_engine, text
+        engine = create_engine("sqlite:///./aarohan_local.db")
+        with engine.connect() as conn:
+            conn.execute(text("DELETE FROM onboarding_customers WHERE pan = 'FRAUD1234F'"))
+            conn.execute(text("DELETE FROM onboarding_businesses WHERE gstin = '27FRAUD1234F1Z1'"))
+            conn.commit()
+    except Exception:
+        pass
+
+    # 1. Onboard a customer with blacklisted PAN
+    onboarding_app = load_app("onboarding-service")
+    client_onboarding = TestClient(onboarding_app)
+    
+    import random
+    rand_suffix = random.randint(10000, 99999)
+    mobile_number = "9" + "".join(random.choices("0123456789", k=9))
+    
+    payload = {
+        "legal_name": f"Fraudulent Merchant {rand_suffix} Ltd",
+        "mobile_number": mobile_number,
+        "email": f"fraud_{rand_suffix}@merchant.com",
+        "pan": "FRAUD1234F", # Blacklisted PAN
+        "businesses": [
+            {
+                "trade_name": "Fraud Goods",
+                "gstin": "27FRAUD1234F1Z1",
+                "cin": None,
+                "constitution_type": "Private Limited",
+                "annual_turnover": 1000000.0,
+                "industry_segment": "Retail"
+            }
+        ],
+        "addresses": [
+            {
+                "address_line1": "123 Fraud St",
+                "city": "Mumbai",
+                "state": "Maharashtra",
+                "pincode": "400001",
+                "address_type": "OFFICE"
+            }
+        ]
+    }
+    
+    onboard_res = client_onboarding.post("/customers", json=payload)
+    assert onboard_res.status_code == 201, f"Failed to onboard: {onboard_res.status_code} - {onboard_res.text}"
+    customer_id = onboard_res.json()["id"]
+        
+    # 2. Query credit-engine for evaluation
+    credit_app = load_app("credit-engine")
+    client_credit = TestClient(credit_app)
+    
+    eval_res = client_credit.post(f"/credit/evaluate/{customer_id}")
+    assert eval_res.status_code == 200
+    data = eval_res.json()
+    assert data["rbi_fraud_status"] == "BLACKLISTED"
+    assert data["recommendation"] == "REJECTED"
+    assert data["approval_status"] == "REJECTED"

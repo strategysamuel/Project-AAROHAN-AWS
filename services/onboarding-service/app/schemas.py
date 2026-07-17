@@ -70,10 +70,14 @@ class ProprietorDirectorResponse(ProprietorDirectorBase):
 class BusinessEntityBase(BaseModel):
     trade_name: str = Field(..., min_length=3)
     gstin: str
+    udyam_number: Optional[str] = None
     cin: Optional[str] = None
     constitution_type: str
     annual_turnover: float = Field(0.0, ge=0.0)
     industry_segment: str
+    business_vintage_years: int = Field(0, ge=0)
+    employee_count: int = Field(0, ge=0)
+    existing_banking: Optional[str] = None
     lifecycle_state: str = "REGISTERED"
 
     @field_validator("gstin")
@@ -103,6 +107,10 @@ class CustomerBase(BaseModel):
     mobile_number: str
     email: EmailStr
     pan: str
+    aadhaar_masked: Optional[str] = None
+    district: Optional[str] = None
+    persona_name: Optional[str] = None
+    onboarding_status: str = "DRAFT"
 
     @field_validator("pan")
     def validate_pan(cls, v):
@@ -123,9 +131,65 @@ class CustomerCreate(CustomerBase):
 class CustomerResponse(CustomerBase):
     id: int
     is_active: bool
+    workflow_id: Optional[str] = None
     created_at: datetime.datetime
     businesses: List[BusinessEntityResponse] = []
     addresses: List[AddressResponse] = []
+    documents: List["DocumentResponse"] = []
 
     class Config:
         from_attributes = True
+
+# ---- Document Schemas ----
+
+class DocumentResponse(BaseModel):
+    id: int
+    doc_type: str
+    doc_name: str
+    source: str
+    status: str
+    uploaded_at: datetime.datetime
+
+    class Config:
+        from_attributes = True
+
+class DocumentUploadRequest(BaseModel):
+    doc_type: str = Field(..., description="PAN | AADHAAR | GST_CERT | UDYAM | BANK_STMT | FINANCIALS | COI")
+    doc_name: str = Field(..., min_length=3)
+    source: str = Field("UPLOAD", description="UPLOAD | SIMULATION_DATASET")
+
+# ---- Persona Load Schema ----
+
+class PersonaLoadRequest(BaseModel):
+    persona_name: str
+
+# ---- Workflow Trigger Response ----
+
+class WorkflowTriggerResponse(BaseModel):
+    workflow_id: str
+    template_name: str
+    status: str
+    customer_id: int
+    events_published: List[str]
+
+# ---- Validation Response ----
+
+class ValidationResult(BaseModel):
+    field: str
+    valid: bool
+    message: str
+
+class ValidationResponse(BaseModel):
+    all_valid: bool
+    results: List[ValidationResult]
+
+# ---- Raw Validation Request (no field-level validators) ----
+
+class CustomerValidateRequest(BaseModel):
+    """Accepts any string values so the endpoint can run manual regex checks
+    and return structured 200 results instead of a 422 Pydantic rejection."""
+    legal_name: Optional[str] = None
+    mobile_number: str
+    email: Optional[str] = None
+    pan: str
+    onboarding_status: str = "DRAFT"

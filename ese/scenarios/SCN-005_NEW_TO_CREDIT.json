@@ -1,0 +1,14 @@
+{
+  "scenario_id": "SCN-005",
+  "scenario_name": "NEW_TO_CREDIT",
+  "description": "Applicant has zero borrowing history. Focuses appraisal entirely on cash flow metrics.",
+  "gst_compliance": "COMPLIANT",
+  "gst_revenue_multiplier": 1.0,
+  "cash_flow_stability": "STRONG",
+  "repayment_history": "CLEAN",
+  "rbi_fraud_status": "CLEAN",
+  "epfo_compliance": "COMPLIANT",
+  "mca_status": "ACTIVE_COMPLIANT",
+  "expected_credit_outcome": "MANUAL_REVIEW",
+  "explainability_tags": ["NEW_TO_CREDIT", "CASHFLOW_HEALTHY"]
+}

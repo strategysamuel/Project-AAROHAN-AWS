@@ -32,12 +32,18 @@ class User(Base):
     __tablename__ = "users"
     
     id = Column(Integer, primary_key=True, index=True)
+    username = Column(String(50), unique=True, nullable=True, index=True)
     mobile_number = Column(String(15), unique=True, nullable=False, index=True)
     email = Column(String(100), unique=True, nullable=True, index=True)
     hashed_password = Column(String(255), nullable=False)
     full_name = Column(String(150), nullable=False)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    
+    department = Column(String(100), nullable=True)
+    branch = Column(String(100), nullable=True)
+    avatar = Column(String(255), nullable=True)
+    status = Column(String(50), default="ACTIVE")
     
     role_id = Column(Integer, ForeignKey("roles.id"), nullable=False)
     role = relationship("Role", backref="users")

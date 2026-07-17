@@ -22,6 +22,19 @@ def get_db():
 def init_db():
     try:
         logger.info("Initializing database tables for gst-service...")
+        from sqlalchemy import inspect
+        inspector = inspect(engine)
+        tables_to_drop = []
+        if "gst_profiles" in inspector.get_table_names():
+            tables_to_drop.append(Base.metadata.tables["gst_profiles"])
+        if "gst_returns" in inspector.get_table_names():
+            tables_to_drop.append(Base.metadata.tables["gst_returns"])
+        if "gst_analytics" in inspector.get_table_names():
+            tables_to_drop.append(Base.metadata.tables["gst_analytics"])
+        
+        if tables_to_drop:
+            Base.metadata.drop_all(bind=engine, tables=tables_to_drop)
+            
         Base.metadata.create_all(bind=engine)
         logger.info("Database initialized successfully.")
     except Exception as e:

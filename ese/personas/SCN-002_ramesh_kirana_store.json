@@ -1,0 +1,20 @@
+{
+  "scenario_id": "SCN-002",
+  "persona_name": "Ramesh Kirana Store",
+  "pan": "SIMRK0002F",
+  "gstin": "27SIMRK0002F1Z6",
+  "business_type": "Retail",
+  "expected_credit_outcome": "MANUAL_REVIEW",
+  "fhc_score_target": 58,
+  "ckyc_status": "CLEAN",
+  "gst_profile": "STABLE",
+  "aa_cash_flow_profile": "STRONG_CASHFLOW",
+  "epfo_status": "STABLE_WORKFORCE",
+  "mca_status": "ACTIVE_COMPLIANT",
+  "rbi_fraud_status": "CLEAN",
+  "explainability_tags": ["NEW_TO_CREDIT", "DSCR_OK"],
+  "mudra_eligible": true,
+  "scheme_tags": ["MUDRA"],
+  "kcc_eligible": false,
+  "ecgc_coverage": false
+}

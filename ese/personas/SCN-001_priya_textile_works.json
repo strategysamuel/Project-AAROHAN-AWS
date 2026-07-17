@@ -1,0 +1,20 @@
+{
+  "scenario_id": "SCN-001",
+  "persona_name": "Priya Textile Works",
+  "pan": "SIMPT0001K",
+  "gstin": "27SIMPT0001K1Z5",
+  "business_type": "Manufacturing",
+  "expected_credit_outcome": "APPROVED",
+  "fhc_score_target": 92,
+  "ckyc_status": "CLEAN",
+  "gst_profile": "HIGH_GROWTH",
+  "aa_cash_flow_profile": "STRONG_CASHFLOW",
+  "epfo_status": "GROWING_WORKFORCE",
+  "mca_status": "ACTIVE_COMPLIANT",
+  "rbi_fraud_status": "CLEAN",
+  "explainability_tags": ["DSCR_OK", "GST_GROWTH_STRONG", "FHC_STRONG"],
+  "mudra_eligible": false,
+  "scheme_tags": [],
+  "kcc_eligible": false,
+  "ecgc_coverage": false
+}

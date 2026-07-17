@@ -9,8 +9,14 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
 
-from app.models import Customer, BusinessEntity, ProprietorDirector, Address
-from app.schemas import CustomerCreate, CustomerResponse, CustomerBase
+from app.models import Customer, BusinessEntity, ProprietorDirector, Address, OnboardingDocument
+from app.schemas import (
+    CustomerCreate, CustomerResponse, CustomerBase,
+    DocumentResponse, DocumentUploadRequest,
+    PersonaLoadRequest, WorkflowTriggerResponse,
+    ValidationResult, ValidationResponse,
+    CustomerValidateRequest,
+)
 from app.database import get_db, init_db
 
 # Configure JSON Logging
@@ -84,12 +90,16 @@ async def create_customer(payload: CustomerCreate, db: Session = Depends(get_db)
             detail="A customer with this PAN or Mobile Number is already registered."
         )
         
-    # 2. Map customer properties
+    # 2. Map customer properties (including AAR-BUILD-008 fields)
     customer = Customer(
         legal_name=payload.legal_name,
         mobile_number=payload.mobile_number,
         email=payload.email,
-        pan=payload.pan
+        pan=payload.pan,
+        aadhaar_masked=payload.aadhaar_masked,
+        district=payload.district,
+        persona_name=payload.persona_name,
+        onboarding_status=payload.onboarding_status,
     )
     db.add(customer)
     db.flush() # Populate customer ID
@@ -107,16 +117,20 @@ async def create_customer(payload: CustomerCreate, db: Session = Depends(get_db)
         )
         db.add(address)
         
-    # 4. Create business entities and directors
+    # 4. Create business entities and directors (including AAR-BUILD-008 fields)
     for bus in payload.businesses:
         business = BusinessEntity(
             customer_id=customer.id,
             trade_name=bus.trade_name,
             gstin=bus.gstin,
+            udyam_number=bus.udyam_number,
             cin=bus.cin,
             constitution_type=bus.constitution_type,
             annual_turnover=bus.annual_turnover,
             industry_segment=bus.industry_segment,
+            business_vintage_years=bus.business_vintage_years,
+            employee_count=bus.employee_count,
+            existing_banking=bus.existing_banking,
             lifecycle_state=bus.lifecycle_state
         )
         db.add(business)
@@ -205,3 +219,181 @@ async def delete_customer(id: int, db: Session = Depends(get_db)):
 @app.get("/livez")
 async def livez():
     return {"status": "UP"}
+
+
+# ============================================================
+# NEW ENTERPRISE ROUTES (AAR-BUILD-008)
+# ============================================================
+
+# --- Persona Load: populate form from ESE persona name ---
+PERSONA_TEMPLATES = {
+    "Priya Textile Works": {
+        "legal_name": "Priya Textile Works",
+        "mobile_number": "9876543210",
+        "email": "priya@textileworks.in",
+        "pan": "PRXPT0001K",
+        "aadhaar_masked": "XXXXXXXX1234",
+        "district": "Surat",
+        "persona_name": "Priya Textile Works",
+        "business": {
+            "trade_name": "Priya Textile Works Pvt Ltd",
+            "gstin": "27SIMPT0001K1Z5",
+            "udyam_number": "UDYAM-GJ-05-0023456",
+            "cin": None,
+            "constitution_type": "Private Limited",
+            "annual_turnover": 45000000.0,
+            "industry_segment": "Manufacturing – Textiles",
+            "business_vintage_years": 12,
+            "employee_count": 87,
+            "existing_banking": "SBI, HDFC Bank"
+        }
+    },
+    "GreenAgro Cooperative": {
+        "legal_name": "GreenAgro Cooperative Society",
+        "mobile_number": "9834567890",
+        "email": "admin@greenagro.coop",
+        "pan": "GRNAG0002B",
+        "aadhaar_masked": "XXXXXXXX5678",
+        "district": "Nashik",
+        "persona_name": "GreenAgro Cooperative",
+        "business": {
+            "trade_name": "GreenAgro Cooperative Society",
+            "gstin": "27SIMGA0002B1Z8",
+            "udyam_number": "UDYAM-MH-11-0087654",
+            "cin": None,
+            "constitution_type": "Cooperative",
+            "annual_turnover": 28000000.0,
+            "industry_segment": "Agriculture",
+            "business_vintage_years": 8,
+            "employee_count": 34,
+            "existing_banking": "Bank of Maharashtra"
+        }
+    },
+    "QuickLogistics Services": {
+        "legal_name": "Quick Logistics Services Pvt Ltd",
+        "mobile_number": "9900112233",
+        "email": "ops@quicklogistics.in",
+        "pan": "QKLOG0003C",
+        "aadhaar_masked": "XXXXXXXX9012",
+        "district": "Pune",
+        "persona_name": "QuickLogistics Services",
+        "business": {
+            "trade_name": "Quick Logistics Services Pvt Ltd",
+            "gstin": "27SIMQL0003C1Z1",
+            "udyam_number": "UDYAM-MH-20-0034521",
+            "cin": "U72900MH2015PTC000003",
+            "constitution_type": "Private Limited",
+            "annual_turnover": 84000000.0,
+            "industry_segment": "Logistics & Supply Chain",
+            "business_vintage_years": 9,
+            "employee_count": 215,
+            "existing_banking": "ICICI Bank, Axis Bank"
+        }
+    }
+}
+
+@app.post("/customers/load-persona", response_model=dict)
+async def load_persona(payload: PersonaLoadRequest):
+    """Return prefilled form data for a named ESE persona."""
+    tmpl = PERSONA_TEMPLATES.get(payload.persona_name)
+    if not tmpl:
+        raise HTTPException(status_code=404, detail=f"Persona '{payload.persona_name}' not found in dataset.")
+    logger.info(f"AUDIT | Persona form populated: {payload.persona_name}")
+    return {"status": "ok", "persona": tmpl}
+
+
+# --- Field Validation ---
+@app.post("/customers/validate", response_model=ValidationResponse)
+async def validate_customer_fields(payload: CustomerValidateRequest, db: Session = Depends(get_db)):
+    """Validate individual fields and detect duplicates before full registration."""
+    import re
+    PAN_RE = re.compile(r"^[A-Z]{5}[0-9]{4}[A-Z]{1}$")
+    MOBILE_RE = re.compile(r"^\d{10}$")
+
+    results = []
+
+    # PAN format
+    results.append(ValidationResult(
+        field="pan", valid=bool(PAN_RE.match(payload.pan)),
+        message="PAN format valid." if PAN_RE.match(payload.pan) else "PAN must be 5 letters + 4 digits + 1 letter."
+    ))
+    # Mobile
+    results.append(ValidationResult(
+        field="mobile_number", valid=bool(MOBILE_RE.match(payload.mobile_number)),
+        message="Mobile valid." if MOBILE_RE.match(payload.mobile_number) else "Mobile must be exactly 10 digits."
+    ))
+    # Duplicate PAN
+    dup_pan = db.query(Customer).filter(Customer.pan == payload.pan, Customer.is_deleted == False).first()
+    results.append(ValidationResult(
+        field="pan_duplicate", valid=dup_pan is None,
+        message="PAN is unique." if dup_pan is None else f"Duplicate PAN found: Customer ID {dup_pan.id}."
+    ))
+    # Duplicate Mobile
+    dup_mob = db.query(Customer).filter(Customer.mobile_number == payload.mobile_number, Customer.is_deleted == False).first()
+    results.append(ValidationResult(
+        field="mobile_duplicate", valid=dup_mob is None,
+        message="Mobile is unique." if dup_mob is None else f"Duplicate Mobile found: Customer ID {dup_mob.id}."
+    ))
+
+    all_valid = all(r.valid for r in results)
+    return ValidationResponse(all_valid=all_valid, results=results)
+
+
+# --- Document Upload (Simulated) ---
+@app.post("/customers/{id}/documents", response_model=DocumentResponse, status_code=status.HTTP_201_CREATED)
+async def upload_document(id: int, payload: DocumentUploadRequest, db: Session = Depends(get_db)):
+    customer = db.query(Customer).filter(Customer.id == id, Customer.is_deleted == False).first()
+    if not customer:
+        raise HTTPException(status_code=404, detail="Customer not found.")
+    doc = OnboardingDocument(
+        customer_id=id,
+        doc_type=payload.doc_type,
+        doc_name=payload.doc_name,
+        source=payload.source,
+        status="PENDING"
+    )
+    db.add(doc)
+    db.commit()
+    db.refresh(doc)
+    logger.info(f"AUDIT | Document uploaded | Customer: {id} | Type: {payload.doc_type} | Source: {payload.source}")
+    return doc
+
+
+@app.get("/customers/{id}/documents", response_model=List[DocumentResponse])
+async def list_documents(id: int, db: Session = Depends(get_db)):
+    return db.query(OnboardingDocument).filter(OnboardingDocument.customer_id == id).all()
+
+
+# --- Workflow Trigger (publishes Business Events + starts MSME Lending Journey) ---
+@app.post("/customers/{id}/start-workflow", response_model=WorkflowTriggerResponse)
+async def start_lending_workflow(id: int, db: Session = Depends(get_db)):
+    """Publish onboarding events and launch the MSME Lending Journey workflow."""
+    import uuid as _uuid
+    customer = db.query(Customer).filter(Customer.id == id, Customer.is_deleted == False).first()
+    if not customer:
+        raise HTTPException(status_code=404, detail="Customer not found.")
+
+    # Publish business events (logged to audit trail)
+    events_published = ["Customer Registered", "Business Registered", "Workflow Started"]
+    wf_id = f"wf_{_uuid.uuid4().hex[:12]}"
+
+    for evt in events_published:
+        logger.info(
+            f"AUDIT | EVENT_BUS | Published: {evt} "
+            f"| Customer: {id} | Persona: {customer.persona_name or customer.legal_name} "
+            f"| WorkflowID: {wf_id}"
+        )
+
+    # Persist workflow reference
+    customer.workflow_id = wf_id
+    customer.onboarding_status = "SUBMITTED"
+    db.commit()
+
+    logger.info(f"AUDIT | MSME Lending Journey launched | Customer: {id} | WorkflowID: {wf_id}")
+    return WorkflowTriggerResponse(
+        workflow_id=wf_id,
+        template_name="MSME Lending Journey",
+        status="STARTED",
+        customer_id=id,
+        events_published=events_published
+    )

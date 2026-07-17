@@ -1,0 +1,14 @@
+{
+  "scenario_id": "SCN-008",
+  "scenario_name": "HIGH_GROWTH_STARTUP",
+  "description": "Tech startup showing high MoM cash inflows and positive compliance records.",
+  "gst_compliance": "COMPLIANT",
+  "gst_revenue_multiplier": 1.5,
+  "cash_flow_stability": "STRONG",
+  "repayment_history": "CLEAN",
+  "rbi_fraud_status": "CLEAN",
+  "epfo_compliance": "COMPLIANT",
+  "mca_status": "ACTIVE_COMPLIANT",
+  "expected_credit_outcome": "APPROVED",
+  "explainability_tags": ["GST_GROWTH_STRONG", "DSCR_OK"]
+}

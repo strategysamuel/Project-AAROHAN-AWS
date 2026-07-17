@@ -1,0 +1,14 @@
+{
+  "scenario_id": "SCN-001",
+  "scenario_name": "EXCELLENT_BORROWER",
+  "description": "Showcase borrower with strong revenues, perfect filings, and stable payroll growth.",
+  "gst_compliance": "COMPLIANT",
+  "gst_revenue_multiplier": 1.15,
+  "cash_flow_stability": "STRONG",
+  "repayment_history": "CLEAN",
+  "rbi_fraud_status": "CLEAN",
+  "epfo_compliance": "COMPLIANT",
+  "mca_status": "ACTIVE_COMPLIANT",
+  "expected_credit_outcome": "APPROVED",
+  "explainability_tags": ["DSCR_OK", "GST_GROWTH_STRONG", "FHC_STRONG"]
+}

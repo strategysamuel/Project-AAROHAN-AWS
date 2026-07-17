@@ -1,0 +1,20 @@
+{
+  "scenario_id": "SCN-004",
+  "persona_name": "Kavitha Exports Ltd",
+  "pan": "SIMKE0004X",
+  "gstin": "27SIMKE0004X1Z8",
+  "business_type": "Exporter",
+  "expected_credit_outcome": "APPROVED",
+  "fhc_score_target": 88,
+  "ckyc_status": "CLEAN",
+  "gst_profile": "HIGH_GROWTH",
+  "aa_cash_flow_profile": "STRONG_CASHFLOW",
+  "epfo_status": "GROWING_WORKFORCE",
+  "mca_status": "ACTIVE_COMPLIANT",
+  "rbi_fraud_status": "CLEAN",
+  "explainability_tags": ["DSCR_OK", "GST_GROWTH_STRONG", "FHC_STRONG"],
+  "mudra_eligible": false,
+  "scheme_tags": [],
+  "kcc_eligible": false,
+  "ecgc_coverage": true
+}

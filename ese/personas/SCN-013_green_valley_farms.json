@@ -1,0 +1,20 @@
+{
+  "scenario_id": "SCN-013",
+  "persona_name": "Green Valley Farms",
+  "pan": "SIMGV0013A",
+  "gstin": "27SIMGV0013A1ZB",
+  "business_type": "Agri Enterprise",
+  "expected_credit_outcome": "APPROVED",
+  "fhc_score_target": 74,
+  "ckyc_status": "CLEAN",
+  "gst_profile": "SEASONAL",
+  "aa_cash_flow_profile": "SEASONAL_CASHFLOW",
+  "epfo_status": "STABLE_WORKFORCE",
+  "mca_status": "ACTIVE_COMPLIANT",
+  "rbi_fraud_status": "CLEAN",
+  "explainability_tags": ["DSCR_OK", "GST_GROWTH_STRONG"],
+  "mudra_eligible": false,
+  "scheme_tags": [],
+  "kcc_eligible": true,
+  "ecgc_coverage": false
+}

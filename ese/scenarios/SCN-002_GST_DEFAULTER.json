@@ -1,0 +1,14 @@
+{
+  "scenario_id": "SCN-002",
+  "scenario_name": "GST_DEFAULTER",
+  "description": "Borrower with recent defaults or missed filings in GST returns.",
+  "gst_compliance": "NON_COMPLIANT",
+  "gst_revenue_multiplier": 0.8,
+  "cash_flow_stability": "WEAK",
+  "repayment_history": "STRESSED",
+  "rbi_fraud_status": "CLEAN",
+  "epfo_compliance": "COMPLIANT",
+  "mca_status": "ACTIVE_COMPLIANT",
+  "expected_credit_outcome": "REJECTED",
+  "explainability_tags": ["GST_FILING_DELINQUENT", "CASHFLOW_DROPPING"]
+}

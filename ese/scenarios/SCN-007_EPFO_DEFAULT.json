@@ -1,0 +1,14 @@
+{
+  "scenario_id": "SCN-007",
+  "scenario_name": "EPFO_DEFAULT",
+  "description": "Compliance failure scenario. Late contribution payments or non-compliant payroll score.",
+  "gst_compliance": "COMPLIANT",
+  "gst_revenue_multiplier": 0.9,
+  "cash_flow_stability": "STRONG",
+  "repayment_history": "CLEAN",
+  "rbi_fraud_status": "CLEAN",
+  "epfo_compliance": "NON_COMPLIANT",
+  "mca_status": "ACTIVE_COMPLIANT",
+  "expected_credit_outcome": "REJECTED",
+  "explainability_tags": ["EPFO_NON_COMPLIANT", "PF_DEFAULT_SCORE"]
+}

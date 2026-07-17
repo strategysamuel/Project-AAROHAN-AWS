@@ -1,0 +1,302 @@
+version: '3.8'
+
+services:
+  # 1. Seeder Init Container
+  seeder-init:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python ese/seed/seed_all.py
+    environment:
+      - INTEGRATION_PROFILE=DEMO
+      - ACTIVE_DATASET=msme
+    volumes:
+      - ./ese:/app/ese
+
+  # 2. Onboarding Service
+  onboarding-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: uvicorn app.main:app --host 0.0.0.0 --port 9001
+    ports:
+      - "9001:9001"
+    environment:
+      - INTEGRATION_PROFILE=DEMO
+      - ACTIVE_DATASET=msme
+      - PYTHONPATH=/app/services/ese-core:/app/services/onboarding-service
+    volumes:
+      - ./ese:/app/ese
+    depends_on:
+      seeder-init:
+        condition: service_completed_successfully
+
+  # 3. Consent Service
+  consent-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: uvicorn app.main:app --host 0.0.0.0 --port 9002
+    ports:
+      - "9002:9002"
+    environment:
+      - INTEGRATION_PROFILE=DEMO
+      - ACTIVE_DATASET=msme
+      - PYTHONPATH=/app/services/ese-core:/app/services/consent-service
+    volumes:
+      - ./ese:/app/ese
+    depends_on:
+      seeder-init:
+        condition: service_completed_successfully
+
+  # 4. GST Service
+  gst-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: uvicorn app.main:app --host 0.0.0.0 --port 9003
+    ports:
+      - "9003:9003"
+    environment:
+      - INTEGRATION_PROFILE=DEMO
+      - ACTIVE_DATASET=msme
+      - PYTHONPATH=/app/services/ese-core:/app/services/gst-service
+    volumes:
+      - ./ese:/app/ese
+    depends_on:
+      seeder-init:
+        condition: service_completed_successfully
+
+  # 5. Account Aggregator Service
+  aa-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: uvicorn app.main:app --host 0.0.0.0 --port 9004
+    ports:
+      - "9004:9004"
+    environment:
+      - INTEGRATION_PROFILE=DEMO
+      - ACTIVE_DATASET=msme
+      - PYTHONPATH=/app/services/ese-core:/app/services/aa-service
+    volumes:
+      - ./ese:/app/ese
+    depends_on:
+      seeder-init:
+        condition: service_completed_successfully
+
+  # 6. Financial Health Card (FHC) Service
+  fhc-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: uvicorn app.main:app --host 0.0.0.0 --port 9005
+    ports:
+      - "9005:9005"
+    environment:
+      - INTEGRATION_PROFILE=DEMO
+      - ACTIVE_DATASET=msme
+      - PYTHONPATH=/app/services/ese-core:/app/services/fhc-service
+    volumes:
+      - ./ese:/app/ese
+    depends_on:
+      seeder-init:
+        condition: service_completed_successfully
+
+  # 7. Credit Appraisal Engine
+  credit-engine:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: uvicorn app.main:app --host 0.0.0.0 --port 9006
+    ports:
+      - "9006:9006"
+    environment:
+      - INTEGRATION_PROFILE=DEMO
+      - ACTIVE_DATASET=msme
+      - PYTHONPATH=/app/services/ese-core:/app/services/credit-engine
+    volumes:
+      - ./ese:/app/ese
+    depends_on:
+      seeder-init:
+        condition: service_completed_successfully
+
+  # 8. CAM Service
+  cam-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: uvicorn app.main:app --host 0.0.0.0 --port 9007
+    ports:
+      - "9007:9007"
+    environment:
+      - INTEGRATION_PROFILE=DEMO
+      - ACTIVE_DATASET=msme
+      - PYTHONPATH=/app/services/ese-core:/app/services/cam-service
+    volumes:
+      - ./ese:/app/ese
+    depends_on:
+      seeder-init:
+        condition: service_completed_successfully
+
+  # 9. Relationship Manager (RM) Workspace
+  rm-workspace-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: uvicorn app.main:app --host 0.0.0.0 --port 9008
+    ports:
+      - "9008:9008"
+    environment:
+      - INTEGRATION_PROFILE=DEMO
+      - ACTIVE_DATASET=msme
+      - PYTHONPATH=/app/services/ese-core:/app/services/rm-workspace-service
+    volumes:
+      - ./ese:/app/ese
+    depends_on:
+      seeder-init:
+        condition: service_completed_successfully
+
+  # 10. Executive KPI Dashboard
+  exec-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: uvicorn app.main:app --host 0.0.0.0 --port 9009
+    ports:
+      - "9009:9009"
+    environment:
+      - INTEGRATION_PROFILE=DEMO
+      - ACTIVE_DATASET=msme
+      - PYTHONPATH=/app/services/ese-core:/app/services/exec-service
+    volumes:
+      - ./ese:/app/ese
+    depends_on:
+      seeder-init:
+        condition: service_completed_successfully
+
+  # 11. Early Warning System (EWS)
+  ews-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: uvicorn app.main:app --host 0.0.0.0 --port 9010
+    ports:
+      - "9010:9010"
+    environment:
+      - INTEGRATION_PROFILE=DEMO
+      - ACTIVE_DATASET=msme
+      - PYTHONPATH=/app/services/ese-core:/app/services/ews-service
+    volumes:
+      - ./ese:/app/ese
+    depends_on:
+      seeder-init:
+        condition: service_completed_successfully
+
+  # 12. CKYC Registry Gateway
+  ckyc-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: uvicorn app.main:app --host 0.0.0.0 --port 9011
+    ports:
+      - "9011:9011"
+    environment:
+      - INTEGRATION_PROFILE=DEMO
+      - ACTIVE_DATASET=msme
+      - PYTHONPATH=/app/services/ese-core:/app/services/ckyc-service
+    volumes:
+      - ./ese:/app/ese
+    depends_on:
+      seeder-init:
+        condition: service_completed_successfully
+
+  # 13. MCA Registry Gateway
+  mca-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: uvicorn app.main:app --host 0.0.0.0 --port 9012
+    ports:
+      - "9012:9012"
+    environment:
+      - INTEGRATION_PROFILE=DEMO
+      - ACTIVE_DATASET=msme
+      - PYTHONPATH=/app/services/ese-core:/app/services/mca-service
+    volumes:
+      - ./ese:/app/ese
+    depends_on:
+      seeder-init:
+        condition: service_completed_successfully
+
+  # 14. EPFO Gateway
+  epfo-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: uvicorn app.main:app --host 0.0.0.0 --port 9013
+    ports:
+      - "9013:9013"
+    environment:
+      - INTEGRATION_PROFILE=DEMO
+      - ACTIVE_DATASET=msme
+      - PYTHONPATH=/app/services/ese-core:/app/services/epfo-service
+    volumes:
+      - ./ese:/app/ese
+    depends_on:
+      seeder-init:
+        condition: service_completed_successfully
+
+  # 15. TReDS Invoice Financing
+  treds-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: uvicorn app.main:app --host 0.0.0.0 --port 9014
+    ports:
+      - "9014:9014"
+    environment:
+      - INTEGRATION_PROFILE=DEMO
+      - ACTIVE_DATASET=msme
+      - PYTHONPATH=/app/services/ese-core:/app/services/treds-service
+    volumes:
+      - ./ese:/app/ese
+    depends_on:
+      seeder-init:
+        condition: service_completed_successfully
+
+  # 16. OCEN / ULI gateway
+  ocen-uli-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: uvicorn app.main:app --host 0.0.0.0 --port 9015
+    ports:
+      - "9015:9015"
+    environment:
+      - INTEGRATION_PROFILE=DEMO
+      - ACTIVE_DATASET=msme
+      - PYTHONPATH=/app/services/ese-core:/app/services/ocen-uli-service
+    volumes:
+      - ./ese:/app/ese
+    depends_on:
+      seeder-init:
+        condition: service_completed_successfully
+
+  # 17. ESE Admin Control Center
+  ese-admin-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: uvicorn app.main:app --host 0.0.0.0 --port 9090
+    ports:
+      - "9090:9090"
+    environment:
+      - INTEGRATION_PROFILE=DEMO
+      - ACTIVE_DATASET=msme
+      - PYTHONPATH=/app/services/ese-core:/app/services/ese-admin-service
+    volumes:
+      - ./ese:/app/ese
+    depends_on:
+      seeder-init:
+        condition: service_completed_successfully

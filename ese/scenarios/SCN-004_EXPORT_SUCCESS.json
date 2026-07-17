@@ -1,0 +1,14 @@
+{
+  "scenario_id": "SCN-004",
+  "scenario_name": "EXPORT_SUCCESS",
+  "description": "High foreign exchange receipt volume, matching export-linked GSTR filings and ECGC coverage.",
+  "gst_compliance": "COMPLIANT",
+  "gst_revenue_multiplier": 1.4,
+  "cash_flow_stability": "STRONG",
+  "repayment_history": "CLEAN",
+  "rbi_fraud_status": "CLEAN",
+  "epfo_compliance": "COMPLIANT",
+  "mca_status": "ACTIVE_COMPLIANT",
+  "expected_credit_outcome": "APPROVED",
+  "explainability_tags": ["SWIFT_RECEIPTS_VERIFIED", "ECGC_ACTIVE", "GST_GROWTH_STRONG"]
+}

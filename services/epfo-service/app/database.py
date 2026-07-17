@@ -22,6 +22,21 @@ def get_db():
 def init_db():
     try:
         logger.info("Initializing database tables for epfo-service...")
+        from sqlalchemy import inspect
+        inspector = inspect(engine)
+        tables_to_drop = []
+        if "epfo_profiles" in inspector.get_table_names():
+            tables_to_drop.append(Base.metadata.tables["epfo_profiles"])
+        if "epfo_contributions" in inspector.get_table_names():
+            tables_to_drop.append(Base.metadata.tables["epfo_contributions"])
+        if "epfo_employees" in inspector.get_table_names():
+            tables_to_drop.append(Base.metadata.tables["epfo_employees"])
+        if "epfo_analytics" in inspector.get_table_names():
+            tables_to_drop.append(Base.metadata.tables["epfo_analytics"])
+            
+        if tables_to_drop:
+            Base.metadata.drop_all(bind=engine, tables=tables_to_drop)
+            
         Base.metadata.create_all(bind=engine)
         logger.info("Database initialized successfully.")
     except Exception as e:

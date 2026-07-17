@@ -1,0 +1,20 @@
+{
+  "scenario_id": "SCN-012",
+  "persona_name": "Deepa Handicrafts",
+  "pan": "SIMDH0012W",
+  "gstin": "27SIMDH0012W1ZA",
+  "business_type": "Retail",
+  "expected_credit_outcome": "APPROVED",
+  "fhc_score_target": 85,
+  "ckyc_status": "CLEAN",
+  "gst_profile": "STABLE",
+  "aa_cash_flow_profile": "STRONG_CASHFLOW",
+  "epfo_status": "STABLE_WORKFORCE",
+  "mca_status": "ACTIVE_COMPLIANT",
+  "rbi_fraud_status": "CLEAN",
+  "explainability_tags": ["DSCR_OK", "FHC_STRONG"],
+  "mudra_eligible": true,
+  "scheme_tags": ["MUDRA", "MAHILA_UDYAM_NIDHI"],
+  "kcc_eligible": false,
+  "ecgc_coverage": false
+}

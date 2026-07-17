@@ -1,0 +1,14 @@
+{
+  "scenario_id": "SCN-010",
+  "scenario_name": "SEASONAL_BUSINESS",
+  "description": "Seasonal business showing distinct agricultural or retail cash flow spikes and drop cycles.",
+  "gst_compliance": "COMPLIANT",
+  "gst_revenue_multiplier": 1.0,
+  "cash_flow_stability": "SEASONAL",
+  "repayment_history": "CLEAN",
+  "rbi_fraud_status": "CLEAN",
+  "epfo_compliance": "COMPLIANT",
+  "mca_status": "ACTIVE_COMPLIANT",
+  "expected_credit_outcome": "APPROVED",
+  "explainability_tags": ["SEASONAL_CASHFLOW_DETECTION", "DSCR_SEASONAL_OK"]
+}

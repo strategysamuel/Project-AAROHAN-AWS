@@ -1,6 +1,14 @@
 import React from 'react';
 import { createStore } from 'zustand';
 import { useStore } from 'zustand';
+import CustomerOnboardingPage from './pages/CustomerOnboardingPage';
+import CKYCPage from './pages/CKYCPage';
+import GSTPage from './pages/GSTPage';
+import AAPage from './pages/AAPage';
+import EPFOPage from './pages/EPFOPage';
+import MCAPage from './pages/MCAPage';
+import CAMPage from './pages/CAMPage';
+import ExecutiveCommandCenterPage from './pages/ExecutiveCommandCenterPage';
 import {
   ThemeProvider,
   createTheme,
@@ -25,883 +33,1229 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Tabs,
-  Tab,
-  LinearProgress,
   List,
   ListItem,
+  ListItemButton,
   ListItemText,
-  ListItemIcon
+  ListItemIcon,
+  IconButton,
+  Drawer,
+  Avatar,
+  CircularProgress,
+  Snackbar,
+  Stack,
+  Stepper,
+  Step,
+  StepLabel,
+  LinearProgress
 } from '@mui/material';
 import {
-  Logout,
-  Sync,
+  Dashboard as DashboardIcon,
+  People,
+  PersonSearch,
   Receipt,
   AccountBalance,
-  TrendingUp,
-  Insights,
-  Timeline,
-  Search,
+  WorkOutline,
+  Business,
+  Assessment,
+  Memory,
+  Description,
   ShoppingCart,
-  LocalOffer,
-  LocalShipping,
+  Gavel,
+  BarChart,
+  SettingsInputComponent,
+  FolderZip,
+  SupervisorAccount,
+  Settings as SettingsIcon,
+  Brightness4,
+  Brightness7,
+  Notifications,
   VerifiedUser,
   History,
+  TrendingUp,
   SmartToy,
-  Hub
+  Logout,
+  VpnKey,
+  PlayArrow,
+  CheckCircle,
+  Pause,
+  Refresh,
+  Speed,
+  ListAlt,
+  Stop,
+  Check,
+  ErrorOutline
 } from '@mui/icons-material';
 
-// 1. Theme Configuration
-const theme = createTheme({
-  palette: {
-    mode: 'dark',
-    primary: { main: '#4285F4' },
-    secondary: { main: '#34A853' }, // green-ish accent
-    info: { main: '#EA4335' }, // red accent
-    background: { default: '#060913', paper: '#0F1626' },
-    text: { primary: '#F1F5F9', secondary: '#94A3B8' }
-  },
-  typography: {
-    fontFamily: 'Outfit, Inter, sans-serif',
-    h5: { fontWeight: 700, letterSpacing: '-0.5px' },
-    h6: { fontWeight: 600 }
-  },
-  shape: { borderRadius: 12 }
-});
-
-// 2. Types
-interface TReDSInvoice {
+// ----------------------------------------------------
+// 1. ZUSTAND CENTRAL STATE MANAGEMENT
+// ----------------------------------------------------
+interface UserProfile {
   id: number;
-  customer_id: number;
-  invoice_number: string;
-  buyer_pan: string;
-  buyer_name: string;
-  amount: number;
-  tenure_days: number;
-  issue_date: string;
-  due_date: string;
-  status: string;
+  mobile_number: string;
+  email: string | null;
+  full_name: string;
+  role: string;
+  department?: string;
+  branch?: string;
+  avatar?: string;
+  permissions: string[];
 }
 
-interface Lender {
-  lender_id: string;
-  name: string;
-  lender_type: string;
-  base_interest_rate: number;
-  max_loan_amount: number;
-  min_credit_score: number;
-}
-
-interface Partner {
-  partner_id: string;
-  name: string;
-  partner_type: string;
-}
-
-interface LoanApplication {
-  id: number;
-  customer_id: number;
-  uli_reference: string;
-  requested_amount: number;
-  requested_tenure_months: number;
-  purpose: string;
-  status: string;
-  selected_offer_id: number | null;
-}
-
-interface LoanOffer {
-  id: number;
-  application_id: number;
-  lender_id: string;
-  lender_name: string;
-  offered_amount: number;
-  interest_rate: number;
-  tenure_months: number;
-  processing_fee: number;
-  monthly_installment: number;
-  status: string;
-}
-
-interface AIRecommendation {
-  suitability_score: number;
-  dynamic_summary: string;
-  recommended_offer_id: number | null;
-  breakdown: string;
-}
-
-interface AuditLog {
-  id: number;
-  correlation_id: string;
-  event_type: string;
-  actor: string;
-  message: string;
-  details: string | null;
-  timestamp: string;
-}
-
-// 3. Zustand TReDS Store
-interface TReDSState {
+interface UIState {
+  themeMode: 'light' | 'dark';
+  activePage: string;
+  activeDataset: string;
+  notification: { open: boolean; message: string; severity: 'success' | 'info' | 'warning' | 'error' } | null;
+  
+  // Auth state
   isAuthenticated: boolean;
-  role: string | null;
-  customerId: string;
-  sellerPanInput: string;
-  invoices: TReDSInvoice[];
-  errorMessage: string | null;
-  successMessage: string | null;
-  isSyncing: boolean;
-  isDiscounting: boolean;
-
-  login: (role: string) => void;
-  logout: () => void;
-  setInput: (field: string, value: string) => void;
-  syncInvoices: () => Promise<void>;
-  fetchInvoices: () => Promise<void>;
-  discountInvoice: (id: number) => Promise<void>;
-}
-
-const tredsStore = createStore<TReDSState>((set, get) => ({
-  isAuthenticated: false,
-  role: null,
-  customerId: '125',
-  sellerPanInput: 'ABCDE1234F',
-  invoices: [],
-  errorMessage: null,
-  successMessage: null,
-  isSyncing: false,
-  isDiscounting: false,
-
-  login: (role) => set({ isAuthenticated: true, role }),
-  logout: () => set({ isAuthenticated: false, role: null, invoices: [] }),
-  setInput: (field, value) => set({ [field]: value } as any),
-  syncInvoices: async () => {
-    set({ isSyncing: true, errorMessage: null, successMessage: null });
-    try {
-      const response = await fetch(`http://localhost:8096/treds/sync/${get().customerId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ seller_pan: get().sellerPanInput })
-      });
-
-      if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.message || 'Sync failed.');
-      }
-
-      const data = await response.json();
-      set({ invoices: data, successMessage: 'TReDS registry invoices synced successfully.' });
-    } catch (error: any) {
-      set({ errorMessage: error.message });
-    } finally {
-      set({ isSyncing: false });
-    }
-  },
-  fetchInvoices: async () => {
-    try {
-      const response = await fetch(`http://localhost:8096/treds/invoices/${get().customerId}`);
-      if (response.ok) {
-        const data = await response.json();
-        set({ invoices: data });
-      }
-    } catch (e) {
-      // Silent error
-    }
-  },
-  discountInvoice: async (id) => {
-    set({ isDiscounting: true, errorMessage: null, successMessage: null });
-    try {
-      const response = await fetch(`http://localhost:8096/treds/discount/${id}`, { method: 'POST' });
-      if (!response.ok) throw new Error('Discounting flow failed.');
-      set({ successMessage: 'Invoice successfully discounted. Working capital advanced.' });
-      get().fetchInvoices();
-    } catch (error: any) {
-      set({ errorMessage: error.message });
-    } finally {
-      set({ isDiscounting: false });
-    }
-  }
-}));
-
-// 4. Zustand OCEN & ULI Store
-interface OCENState {
-  eligibility: {
-    eligible: boolean;
-    reason: string;
-    max_eligible_amount: number;
-    uli_reference: string;
-  } | null;
-  application: LoanApplication | null;
-  offers: LoanOffer[];
-  bestRateOfferId: number | null;
-  bestAmountOfferId: number | null;
-  comparisonNotes: string;
-  aiAdvisor: AIRecommendation | null;
-  lenders: Lender[];
-  partners: Partner[];
-  auditLogs: AuditLog[];
+  token: string | null;
+  user: UserProfile | null;
   isLoading: boolean;
-
-  checkEligibility: (revenue: number, score: number, amount: number) => Promise<void>;
-  applyLoan: (amount: number, tenure: number, purpose: string) => Promise<void>;
-  acceptOffer: (offerId: number) => Promise<void>;
-  disburseLoan: () => Promise<void>;
-  fetchLendersAndPartners: () => Promise<void>;
-  fetchAuditLogs: () => Promise<void>;
-  resetCreditPortal: () => void;
+  
+  // Simulation Active Selection State
+  activePersona: string;
+  activeScenario: string;
+  
+  toggleTheme: () => void;
+  setActivePage: (page: string) => void;
+  setActiveDataset: (dataset: string) => void;
+  showNotification: (message: string, severity?: 'success' | 'info' | 'warning' | 'error') => void;
+  closeNotification: () => void;
+  
+  // Auth actions
+  login: (mobile: string, password: string) => Promise<boolean>;
+  logout: () => void;
+  
+  // Simulation actions
+  setSimulation: (persona: string, scenario: string) => Promise<void>;
 }
 
-const ocenStore = createStore<OCENState>((set, get) => ({
-  eligibility: null,
-  application: null,
-  offers: [],
-  bestRateOfferId: null,
-  bestAmountOfferId: null,
-  comparisonNotes: '',
-  aiAdvisor: null,
-  lenders: [],
-  partners: [],
-  auditLogs: [],
+const uiStore = createStore<UIState>((set, get) => ({
+  themeMode: 'dark',
+  activePage: 'Dashboard',
+  activeDataset: 'msme',
+  notification: null,
+  
+  isAuthenticated: false,
+  token: null,
+  user: null,
   isLoading: false,
-
-  resetCreditPortal: () => set({
-    eligibility: null,
-    application: null,
-    offers: [],
-    bestRateOfferId: null,
-    bestAmountOfferId: null,
-    comparisonNotes: '',
-    aiAdvisor: null
-  }),
-
-  checkEligibility: async (revenue, score, amount) => {
+  
+  activePersona: 'Priya Textile Works',
+  activeScenario: 'Healthy Business',
+  
+  toggleTheme: () => set((state) => ({ themeMode: state.themeMode === 'light' ? 'dark' : 'light' })),
+  setActivePage: (page) => set({ activePage: page }),
+  setActiveDataset: (dataset) => set({ activeDataset: dataset }),
+  showNotification: (message, severity = 'success') => set({ notification: { open: true, message, severity } }),
+  closeNotification: () => set({ notification: null }),
+  
+  login: async (mobile, password) => {
     set({ isLoading: true });
     try {
-      const customerId = tredsStore.getState().customerId;
-      const res = await fetch('http://localhost:8000/ocen/eligibility', {
+      const response = await fetch('http://localhost:8000/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          customer_id: parseInt(customerId) || 125,
-          annual_revenue: revenue,
-          credit_score: score,
-          requested_amount: amount
-        })
+        body: JSON.stringify({ mobile_number: mobile, password })
       });
-      if (res.ok) {
-        const data = await res.json();
-        set({ eligibility: data });
-        get().fetchAuditLogs();
+      
+      if (!response.ok) {
+        throw new Error('Authentication failed. Check your credentials.');
       }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      set({ isLoading: false });
-    }
-  },
-
-  applyLoan: async (amount, tenure, purpose) => {
-    set({ isLoading: true });
-    try {
-      const customerId = tredsStore.getState().customerId;
-      const res = await fetch('http://localhost:8000/ocen/apply', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          customer_id: parseInt(customerId) || 125,
-          requested_amount: amount,
-          requested_tenure_months: tenure,
-          purpose: purpose
-        })
+      
+      const tokenData = await response.json();
+      
+      const meResponse = await fetch('http://localhost:8000/auth/me', {
+        headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
       });
-      if (res.ok) {
-        const appData = await res.json();
-        set({ application: appData });
-
-        // Fetch offers
-        const offersRes = await fetch(`http://localhost:8000/ocen/applications/${appData.id}/offers`);
-        if (offersRes.ok) {
-          const offersData = await offersRes.json();
-          set({ offers: offersData });
-        }
-
-        // Fetch Comparison
-        const compRes = await fetch(`http://localhost:8000/ocen/offers/compare/${appData.id}`);
-        if (compRes.ok) {
-          const compData = await compRes.json();
+      
+      if (!meResponse.ok) {
+        throw new Error('Failed to retrieve user profile.');
+      }
+      
+      const profile = await meResponse.json();
+      
+      try {
+        const controlRes = await fetch('http://localhost:8090/ese/control');
+        if (controlRes.ok) {
+          const controlState = await controlRes.json();
           set({
-            bestRateOfferId: compData.best_rate_offer_id,
-            bestAmountOfferId: compData.best_amount_offer_id,
-            comparisonNotes: compData.comparison_notes
+            activePersona: controlState.active_persona,
+            activeScenario: controlState.active_scenario,
+            activeDataset: controlState.active_dataset
           });
         }
-
-        // Fetch AI recommendation
-        const aiRes = await fetch(`http://localhost:8000/ocen/ai-advisor/${appData.id}`);
-        if (aiRes.ok) {
-          const aiData = await aiRes.json();
-          set({ aiAdvisor: aiData });
-        }
-
-        get().fetchAuditLogs();
+      } catch (e) {
+        // Silent error
       }
-    } catch (e) {
-      console.error(e);
+      
+      set({
+        isAuthenticated: true,
+        token: tokenData.access_token,
+        user: {
+          ...profile,
+          department: profile.department || 'Operations',
+          branch: profile.branch || 'Mumbai HQ',
+          avatar: profile.avatar || '/assets/avatars/default.png'
+        },
+        activePage: 'Dashboard'
+      });
+      
+      get().showNotification(`Welcome back, ${profile.full_name}!`, 'success');
+      return true;
+    } catch (error: any) {
+      get().showNotification(error.message, 'error');
+      return false;
     } finally {
       set({ isLoading: false });
     }
   },
-
-  acceptOffer: async (offerId) => {
+  
+  logout: () => {
+    set({
+      isAuthenticated: false,
+      token: null,
+      user: null,
+      activePage: 'Dashboard'
+    });
+    get().showNotification('You have logged out successfully.', 'info');
+  },
+  
+  setSimulation: async (persona, scenario) => {
     set({ isLoading: true });
     try {
-      const res = await fetch('http://localhost:8000/ocen/offers/accept', {
+      await fetch('http://localhost:8090/ese/control/persona', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ offer_id: offerId })
+        body: JSON.stringify({ persona })
       });
-      if (res.ok) {
-        const appData = await res.json();
-        set({ application: appData });
-        
-        // Refresh offers list
-        if (get().application) {
-          const offersRes = await fetch(`http://localhost:8000/ocen/applications/${appData.id}/offers`);
-          if (offersRes.ok) {
-            const offersData = await offersRes.json();
-            set({ offers: offersData });
-          }
-        }
-        get().fetchAuditLogs();
-      }
-    } catch (e) {
-      console.error(e);
+      
+      await fetch('http://localhost:8090/ese/control/scenario', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scenario })
+      });
+      
+      set({ activePersona: persona, activeScenario: scenario });
+      get().showNotification(`Lending twin configured: ${persona} - ${scenario}`, 'success');
+    } catch (e: any) {
+      get().showNotification(`Sandbox sync failed: ${e.message}`, 'warning');
+      set({ activePersona: persona, activeScenario: scenario });
     } finally {
       set({ isLoading: false });
-    }
-  },
-
-  disburseLoan: async () => {
-    const appRecord = get().application;
-    if (!appRecord) return;
-    set({ isLoading: true });
-    try {
-      const res = await fetch(`http://localhost:8000/ocen/disburse/${appRecord.id}`, {
-        method: 'POST'
-      });
-      if (res.ok) {
-        const appData = await res.json();
-        set({ application: appData });
-        get().fetchAuditLogs();
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      set({ isLoading: false });
-    }
-  },
-
-  fetchLendersAndPartners: async () => {
-    try {
-      const lendersRes = await fetch('http://localhost:8000/ocen/lenders');
-      if (lendersRes.ok) {
-        const lendersData = await lendersRes.json();
-        set({ lenders: lendersData });
-      }
-      const partnersRes = await fetch('http://localhost:8000/ocen/partners');
-      if (partnersRes.ok) {
-        const partnersData = await partnersRes.json();
-        set({ partners: partnersData });
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  },
-
-  fetchAuditLogs: async () => {
-    try {
-      const res = await fetch('http://localhost:8000/ocen/audit-logs');
-      if (res.ok) {
-        const logsData = await res.json();
-        set({ auditLogs: logsData });
-      }
-    } catch (e) {
-      console.error(e);
     }
   }
 }));
 
-// Helper to format values as Lakhs
-function formatLakhs(val: number): string {
-  return `₹${(val / 100000).toFixed(2)} Lakhs`;
+// ----------------------------------------------------
+// 2. DESIGN SYSTEM REUSABLE COMPONENTS
+// ----------------------------------------------------
+
+interface MetricCardProps {
+  title: string;
+  value: string | number;
+  subtext?: string;
+  trend?: string;
+  trendPositive?: boolean;
+  icon: React.ReactNode;
 }
 
-// Helper to format currency properly
-function formatCurrency(val: number): string {
-  return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(val);
+const MetricCard: React.FC<MetricCardProps> = ({ title, value, subtext, trend, trendPositive = true, icon }) => (
+  <Paper elevation={1} sx={{ p: 3, height: '100%', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 2 }}>
+    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+      <Typography variant="body2" color="text.secondary" fontWeight="500">
+        {title}
+      </Typography>
+      <Box sx={{ color: 'primary.main', opacity: 0.8 }}>{icon}</Box>
+    </Box>
+    <Typography variant="h4" fontWeight="700" sx={{ mb: 1 }}>
+      {value}
+    </Typography>
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      {trend && (
+        <Typography variant="caption" fontWeight="bold" color={trendPositive ? 'success.main' : 'error.main'}>
+          {trend}
+        </Typography>
+      )}
+      {subtext && (
+        <Typography variant="caption" color="text.secondary">
+          {subtext}
+        </Typography>
+      )}
+    </Box>
+  </Paper>
+);
+
+interface StatusBadgeProps {
+  status: string;
 }
 
-// 5. View Assemblies
-export default function App() {
-  const store = useStore(tredsStore);
-  const ocen = useStore(ocenStore);
-  const [localMobile, setLocalMobile] = React.useState('');
-  const [activeTab, setActiveTab] = React.useState(0);
-
-  // OCEN inputs state
-  const [revenue, setRevenue] = React.useState('5000000');
-  const [creditScore, setCreditScore] = React.useState('750');
-  const [reqAmount, setReqAmount] = React.useState('1000000');
-  const [loanPurpose, setLoanPurpose] = React.useState('Business expansion and raw material procurement');
-  const [loanTenure, setLoanTenure] = React.useState('12');
-
-  React.useEffect(() => {
-    if (store.isAuthenticated) {
-      store.fetchInvoices();
-      ocen.fetchLendersAndPartners();
-      ocen.fetchAuditLogs();
+const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
+  const getBadgeConfig = (s: string) => {
+    switch (s.toUpperCase()) {
+      case 'APPROVED':
+      case 'ACTIVE':
+      case 'SUCCESS':
+      case 'COMPLETED':
+      case 'FILED':
+        return { color: 'success' as const, label: s };
+      case 'REJECTED':
+      case 'BLACKLISTED':
+      case 'ERROR':
+      case 'FAILED':
+        return { color: 'error' as const, label: s };
+      case 'PENDING':
+      case 'STRESSED':
+      case 'RUNNING':
+        return { color: 'warning' as const, label: s };
+      default:
+        return { color: 'primary' as const, label: s };
     }
-  }, [store.isAuthenticated]);
+  };
+  const config = getBadgeConfig(status);
+  return <Chip label={config.label} color={config.color} size="small" variant="outlined" />;
+};
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-    setActiveTab(newValue);
+// ----------------------------------------------------
+// 3. PAGES RENDER
+// ----------------------------------------------------
+
+const DashboardPage = () => {
+  const ui = useStore(uiStore);
+  return (
+    <Box>
+      <Typography variant="h5" color="text.primary" fontWeight="bold" sx={{ mb: 1 }}>
+        Enterprise Overview Dashboard
+      </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
+        Real-time metrics, active underwriting pipelines, and simulation boundaries.
+      </Typography>
+
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid item xs={12} sm={6} md={3}>
+          <MetricCard title="Total Customers" value="1,284" trend="+12%" subtext="vs last quarter" icon={<People />} />
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <MetricCard title="Loan Applications" value="342" trend="+8%" subtext="active appraisals" icon={<Description />} />
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <MetricCard title="Approval Rate" value="84%" trend="Optimal" trendPositive={true} subtext="policy compliance" icon={<VerifiedUser />} />
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <MetricCard title="Portfolio Value" value="₹18.4 Cr" trend="+15%" subtext="Active outstanding" icon={<TrendingUp />} />
+        </Grid>
+      </Grid>
+
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={8}>
+          <Paper sx={{ p: 3, border: '1px solid rgba(255,255,255,0.06)', borderRadius: 2 }}>
+            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+              Recent Loan Activity Feed
+            </Typography>
+            <Divider sx={{ my: 1.5 }} />
+            <TableContainer>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Borrower Name</TableCell>
+                    <TableCell>Requested Limit</TableCell>
+                    <TableCell>FHC Score</TableCell>
+                    <TableCell>Status</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  <TableRow>
+                    <TableCell>Priya Textile Works</TableCell>
+                    <TableCell>₹25,000,000</TableCell>
+                    <TableCell>85/100</TableCell>
+                    <TableCell><StatusBadge status="APPROVED" /></TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>GreenAgro Cooperative</TableCell>
+                    <TableCell>₹15,000,000</TableCell>
+                    <TableCell>52/100</TableCell>
+                    <TableCell><StatusBadge status="PENDING" /></TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>QuickLogistics</TableCell>
+                    <TableCell>₹8,000,000</TableCell>
+                    <TableCell>32/100</TableCell>
+                    <TableCell><StatusBadge status="REJECTED" /></TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Paper>
+        </Grid>
+
+        <Grid item xs={12} md={4}>
+          <Paper sx={{ p: 3, border: '1px solid rgba(255,255,255,0.06)', borderRadius: 2 }}>
+            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+              Lending Twin Health Status
+            </Typography>
+            <Divider sx={{ my: 1.5 }} />
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                <Typography variant="body2" color="text.secondary">Active dataset</Typography>
+                <Typography variant="body2" fontWeight="bold" color="primary">{ui.activeDataset}</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                <Typography variant="body2" color="text.secondary">Simulation status</Typography>
+                <Typography variant="body2" fontWeight="bold" color="success.main">RUNNING</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                <Typography variant="body2" color="text.secondary">Active Persona</Typography>
+                <Typography variant="body2" fontWeight="bold" color="secondary.main">{ui.activePersona}</Typography>
+              </Box>
+            </Box>
+          </Paper>
+        </Grid>
+      </Grid>
+    </Box>
+  );
+};
+
+// Simulation Management Page Component
+const SimulationPage = () => {
+  const ui = useStore(uiStore);
+
+  const mockPersonas = [
+    { name: 'Priya Textile Works', industry: 'Manufacturing', segment: 'Exporter', location: 'Surat, Gujarat', turnover: '₹4.5 Cr', rating: 'A+', score: '82/100' },
+    { name: 'GreenAgro Cooperative', industry: 'Agriculture', segment: 'Enterprise', location: 'Nashik, Maharashtra', turnover: '₹2.8 Cr', rating: 'BBB', score: '64/100' },
+    { name: 'QuickLogistics Services', industry: 'Logistics', segment: 'Service Provider', location: 'Pune, Maharashtra', turnover: '₹8.4 Cr', rating: 'AA', score: '91/100' },
+    { name: 'SparkTech Solutions', industry: 'Services', segment: 'Startup', location: 'Bangalore, Karnataka', turnover: '₹95L', rating: 'B-', score: '48/100' }
+  ];
+
+  const mockScenarios = [
+    { id: 'Healthy Business', desc: 'Consistent filings, positive balances, zero fraud warnings.' },
+    { id: 'High Growth', desc: 'Spiking GSTR-1 returns, low inventory storage cycles, request limit expansion.' },
+    { id: 'Seasonal Business', desc: 'Predictable drop in working capital during monsoon quarter.' },
+    { id: 'Cash Flow Stress', desc: 'Overdue receivable collections, high outstanding interest burdens.' },
+    { id: 'GST Default', desc: 'Delayed GST returns for 3 successive filing sessions.' },
+    { id: 'EPFO Default', desc: 'Pending corporate employee contribution deposits.' },
+    { id: 'RBI Blacklisted', desc: 'Company listed on RBI defaulters central registry database.' }
+  ];
+
+  const [selectedPersona, setSelectedPersona] = React.useState(ui.activePersona);
+  const [selectedScenario, setSelectedScenario] = React.useState(ui.activeScenario);
+
+  const steps = [
+    'Onboarding', 'CKYC Verification', 'GST Audit', 'Account Aggregator Sync', 
+    'EPFO Check', 'MCA Filings', 'FHC Appraisal', 'AI Credit Underwriting', 
+    'Fraud Verification', 'OCEN Marketplace', 'CAM Output'
+  ];
+
+  return (
+    <Box>
+      <Typography variant="h5" color="text.primary" fontWeight="bold" sx={{ mb: 1 }}>
+        Enterprise Simulation Engine Dashboard
+      </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
+        Configure customer profiles, align macro-risk stress tests, and trace simulated underwriting pipelines.
+      </Typography>
+
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={6}>
+          <Paper sx={{ p: 3, border: '1px solid rgba(255,255,255,0.06)', borderRadius: 2 }}>
+            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+              1. Choose Target Customer Persona
+            </Typography>
+            <Divider sx={{ my: 1.5 }} />
+            <Stack spacing={2}>
+              {mockPersonas.map((p) => (
+                <Card 
+                  key={p.name} 
+                  variant="outlined" 
+                  onClick={() => setSelectedPersona(p.name)}
+                  sx={{ 
+                    cursor: 'pointer',
+                    borderColor: selectedPersona === p.name ? 'primary.main' : 'rgba(255,255,255,0.08)',
+                    bgcolor: selectedPersona === p.name ? 'rgba(66,133,244,0.04)' : 'transparent'
+                  }}
+                >
+                  <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                      <Typography variant="subtitle2" fontWeight="bold">{p.name}</Typography>
+                      <Chip label={p.rating} color="secondary" size="small" />
+                    </Box>
+                    <Grid container spacing={1}>
+                      <Grid item xs={6}>
+                        <Typography variant="caption" color="text.secondary">Industry: {p.industry}</Typography>
+                      </Grid>
+                      <Grid item xs={6}>
+                        <Typography variant="caption" color="text.secondary">Turnover: {p.turnover}</Typography>
+                      </Grid>
+                    </Grid>
+                  </CardContent>
+                </Card>
+              ))}
+            </Stack>
+          </Paper>
+        </Grid>
+
+        <Grid item xs={12} md={6}>
+          <Paper sx={{ p: 3, border: '1px solid rgba(255,255,255,0.06)', borderRadius: 2 }}>
+            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+              2. Select Stress Testing Business Scenario
+            </Typography>
+            <Divider sx={{ my: 1.5 }} />
+            <Stack spacing={2}>
+              {mockScenarios.map((sc) => (
+                <Card 
+                  key={sc.id} 
+                  variant="outlined" 
+                  onClick={() => setSelectedScenario(sc.id)}
+                  sx={{ 
+                    cursor: 'pointer',
+                    borderColor: selectedScenario === sc.id ? 'primary.main' : 'rgba(255,255,255,0.08)',
+                    bgcolor: selectedScenario === sc.id ? 'rgba(66,133,244,0.04)' : 'transparent'
+                  }}
+                >
+                  <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+                    <Typography variant="subtitle2" fontWeight="bold" gutterBottom>{sc.id}</Typography>
+                    <Typography variant="caption" color="text.secondary">{sc.desc}</Typography>
+                  </CardContent>
+                </Card>
+              ))}
+            </Stack>
+          </Paper>
+        </Grid>
+
+        <Grid item xs={12}>
+          <Paper sx={{ p: 4, border: '1px solid rgba(66,133,244,0.3)', bgcolor: 'rgba(66,133,244,0.02)', borderRadius: 2 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+              <Box>
+                <Typography variant="h6" fontWeight="bold">Active Simulation Launcher Preview</Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Configure sandbox parameters for all downstream API endpoints.
+                </Typography>
+              </Box>
+              <Button 
+                variant="contained" 
+                size="large" 
+                startIcon={<PlayArrow />}
+                onClick={() => ui.setSimulation(selectedPersona, selectedScenario)}
+              >
+                Activate Simulation
+              </Button>
+            </Box>
+
+            <Grid container spacing={4} sx={{ mb: 4 }}>
+              <Grid item xs={6} md={3}>
+                <Typography variant="caption" color="text.secondary">Selected Customer Profile</Typography>
+                <Typography variant="body2" fontWeight="bold">{selectedPersona}</Typography>
+              </Grid>
+              <Grid item xs={6} md={3}>
+                <Typography variant="caption" color="text.secondary">Macro Scenario</Typography>
+                <Typography variant="body2" fontWeight="bold" color="secondary.main">{selectedScenario}</Typography>
+              </Grid>
+              <Grid item xs={6} md={3}>
+                <Typography variant="caption" color="text.secondary">Integration Sandbox</Typography>
+                <Typography variant="body2" fontWeight="bold">CONNECTED</Typography>
+              </Grid>
+              <Grid item xs={6} md={3}>
+                <Typography variant="caption" color="text.secondary">Target Outcome</Typography>
+                <Typography variant="body2" fontWeight="bold">
+                  {selectedScenario === 'Healthy Business' ? 'Limits Approved' : 'Refer for Manual Audit'}
+                </Typography>
+              </Grid>
+            </Grid>
+
+            <Divider sx={{ my: 3 }} />
+
+            <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 2 }}>Simulation Journey Track</Typography>
+            <Box sx={{ width: '100%', overflowX: 'auto', py: 2 }}>
+              <Stepper activeStep={0} alternativeLabel>
+                {steps.map((label) => (
+                  <Step key={label}>
+                    <StepLabel>{label}</StepLabel>
+                  </Step>
+                ))}
+              </Stepper>
+            </Box>
+          </Paper>
+        </Grid>
+      </Grid>
+    </Box>
+  );
+};
+
+// Lending Workflow Orchestrator Page (Onboarding View)
+const OrchestratorPage = () => {
+  const ui = useStore(uiStore);
+  const [activeStep, setActiveStep] = React.useState(0);
+  const [workflowStatus, setWorkflowStatus] = React.useState<'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED'>('PENDING');
+  const [logs, setLogs] = React.useState<Array<{ time: string; msg: string; status: string }>>([]);
+
+  const workflowSteps = [
+    { name: 'Login Check', desc: 'Secure RM session validation.' },
+    { name: 'Onboarding Registry', desc: 'Customer KYC registration file initialization.' },
+    { name: 'CKYC Search', desc: 'Queries Central Registry matching PAN.' },
+    { name: 'GST Audit Sync', desc: 'Sync GSTR returns history.' },
+    { name: 'AA Banking Sync', desc: 'Sync cash ledger accounts.' },
+    { name: 'EPFO Sync', desc: 'Validate employee pf distributions.' },
+    { name: 'MCA Registry Verify', desc: 'Check registered corporate status.' },
+    { name: 'FHC Scoring', desc: 'Compute Financial Health Score.' },
+    { name: 'AI Credit Decision', desc: 'Run Gemini AI appraisal rules.' },
+    { name: 'CAM Load', desc: 'Generate credit memorandum.' },
+    { name: 'OCEN Marketplace', desc: 'Generate partner lender loan offers.' }
+  ];
+
+  const triggerWorkflow = async () => {
+    setWorkflowStatus('RUNNING');
+    setLogs([]);
+    
+    // Simulate orchestration step-by-step
+    for (let i = 0; i < workflowSteps.length; i++) {
+      setActiveStep(i);
+      const step = workflowSteps[i];
+      setLogs((prev) => [
+        ...prev,
+        {
+          time: new Date().toLocaleTimeString(),
+          msg: `Orchestrator invoking step: ${step.name} (${step.desc})`,
+          status: 'RUNNING'
+        }
+      ]);
+      
+      await new Promise((resolve) => setTimeout(resolve, 800));
+      
+      setLogs((prev) => [
+        ...prev,
+        {
+          time: new Date().toLocaleTimeString(),
+          msg: `Step ${step.name} completed successfully. Business events published.`,
+          status: 'SUCCESS'
+        }
+      ]);
+    }
+    
+    setWorkflowStatus('COMPLETED');
+    uiStore.getState().showNotification('Lending Journey Workflow Orchestrated successfully!', 'success');
+  };
+
+  const cancelWorkflow = () => {
+    setWorkflowStatus('PENDING');
+    setActiveStep(0);
+    setLogs((prev) => [...prev, { time: new Date().toLocaleTimeString(), msg: 'Workflow execution cancelled by administrator.', status: 'ERROR' }]);
   };
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Box sx={{ flexGrow: 1, minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-        
-        {/* Navigation Toolbar */}
-        <AppBar position="static" color="transparent" elevation={0} sx={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-          <Toolbar>
-            <Typography variant="h6" color="primary" sx={{ flexGrow: 1, fontWeight: '800' }}>
-              PROJECT AAROHAN - ENTERPRISE CREDIT GATEWAY
+    <Box>
+      <Typography variant="h5" color="text.primary" fontWeight="bold" sx={{ mb: 1 }}>
+        Enterprise Lending Workflow Orchestrator
+      </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
+        Coordinate every module of the MSME lending twin sequentially. Ensures compliance and transactional consistency.
+      </Typography>
+
+      <Grid container spacing={3}>
+        {/* Controls and Stats */}
+        <Grid item xs={12} md={4}>
+          <Paper sx={{ p: 3, border: '1px solid rgba(255,255,255,0.06)', borderRadius: 2, height: '100%' }}>
+            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+              Workflow Status Console
             </Typography>
-            {store.isAuthenticated && (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Chip label={`Role: ${store.role}`} color="secondary" />
-                <Button color="inherit" endIcon={<Logout />} onClick={store.logout}>Sign Out</Button>
+            <Divider sx={{ my: 1.5 }} />
+            
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="caption" color="text.secondary">Current Execution State</Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+                <StatusBadge status={workflowStatus} />
+                {workflowStatus === 'RUNNING' && <CircularProgress size={16} />}
               </Box>
-            )}
-          </Toolbar>
-        </AppBar>
-
-        {/* Global Notifications */}
-        <Container maxWidth="md" sx={{ mt: 2 }}>
-          {store.errorMessage && <Alert severity="error" onClose={() => tredsStore.setState({ errorMessage: null })}>{store.errorMessage}</Alert>}
-          {store.successMessage && <Alert severity="success" onClose={() => tredsStore.setState({ successMessage: null })}>{store.successMessage}</Alert>}
-        </Container>
-
-        <Container sx={{ flexGrow: 1, py: 4 }}>
-          
-          {/* LOGIN WINDOW */}
-          {!store.isAuthenticated ? (
-            <Paper elevation={4} sx={{ p: 4, width: '100%', maxWidth: 440, mx: 'auto', mt: 8, border: '1px solid rgba(255,255,255,0.05)' }}>
-              <Typography variant="h5" align="center" gutterBottom>
-                Identity Portal Verification
-              </Typography>
-              <Typography variant="body2" align="center" color="text.secondary" sx={{ mb: 3 }}>
-                Simulate login for credit intelligence dashboard
-              </Typography>
-              <TextField
-                fullWidth
-                label="Staff Mobile Access"
-                value={localMobile}
-                onChange={(e) => setLocalMobile(e.target.value)}
-                placeholder="e.g. 9876543210 (RM) or 9988776655 (Client)"
-                sx={{ mb: 3 }}
-              />
-              <Button
-                fullWidth
-                size="large"
-                variant="contained"
-                onClick={() => {
-                  const role = localMobile === '9876543210' ? 'RELATIONSHIP_MANAGER' : 'CUSTOMER';
-                  store.login(role);
-                }}
-              >
-                Sign In
-              </Button>
-            </Paper>
-          ) : (
-            // MAIN DASHBOARD LAYOUT
-            <Box>
-              <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-                <Tabs value={activeTab} onChange={handleTabChange} textColor="primary" indicatorColor="primary">
-                  <Tab label="TReDS Receivables Discounting" />
-                  <Tab label="OCEN & ULI Embedded Credit" />
-                </Tabs>
-              </Box>
-
-              {ocen.isLoading && <LinearProgress color="primary" sx={{ mb: 2 }} />}
-
-              {activeTab === 0 ? (
-                // TAB 0: TReDS Receivables
-                <Box>
-                  {/* SYNC FORM */}
-                  <Paper sx={{ p: 3, mb: 4, border: '1px solid rgba(255,255,255,0.05)' }}>
-                    <Typography variant="h6" gutterBottom color="primary">TReDS Invoices Sync Panel</Typography>
-                    <Grid container spacing={2} alignItems="center">
-                      <Grid item xs={12} sm={4}>
-                        <TextField fullWidth label="Scanned Customer ID" value={store.customerId} onChange={(e) => store.setInput('customerId', e.target.value)} />
-                      </Grid>
-                      <Grid item xs={12} sm={5}>
-                        <TextField fullWidth label="Seller PAN Code" value={store.sellerPanInput} onChange={(e) => store.setInput('sellerPanInput', e.target.value)} placeholder="e.g. ABCDE1234F" />
-                      </Grid>
-                      <Grid item xs={12} sm={3}>
-                        <Button fullWidth size="large" variant="contained" startIcon={<Sync />} onClick={store.syncInvoices} disabled={store.isSyncing}>
-                          {store.isSyncing ? 'Syncing...' : 'Sync TReDS Invoices'}
-                        </Button>
-                      </Grid>
-                    </Grid>
-                  </Paper>
-
-                  {store.invoices.length > 0 ? (
-                    <Grid container spacing={3}>
-                      {/* INVOICES GRID */}
-                      <Grid item xs={12} md={7}>
-                        <Paper sx={{ p: 3, border: '1px solid rgba(255,255,255,0.05)', height: '100%' }}>
-                          <Typography variant="h6" color="primary" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            <Receipt /> Scanned TReDS Receivables Invoices
-                          </Typography>
-                          <Divider sx={{ my: 1.5 }} />
-                          <TableContainer>
-                            <Table size="small">
-                              <TableHead>
-                                <TableRow>
-                                  <TableCell>Invoice Number</TableCell>
-                                  <TableCell>Buyer Name</TableCell>
-                                  <TableCell>Amount</TableCell>
-                                  <TableCell>Tenure</TableCell>
-                                  <TableCell>Status</TableCell>
-                                  <TableCell>Action</TableCell>
-                                </TableRow>
-                              </TableHead>
-                              <TableBody>
-                                {store.invoices.map((inv) => (
-                                  <TableRow key={inv.id}>
-                                    <TableCell>{inv.invoice_number}</TableCell>
-                                    <TableCell>{inv.buyer_name}</TableCell>
-                                    <TableCell>{formatLakhs(inv.amount)}</TableCell>
-                                    <TableCell>{inv.tenure_days} Days</TableCell>
-                                    <TableCell>
-                                      <Chip label={inv.status} color={inv.status === 'DISCOUNTED' ? 'success' : 'primary'} size="small" />
-                                    </TableCell>
-                                    <TableCell>
-                                      {inv.status === 'ELIGIBLE' && store.role === 'RELATIONSHIP_MANAGER' && (
-                                        <Button size="small" variant="contained" color="secondary" onClick={() => store.discountInvoice(inv.id)} disabled={store.isDiscounting}>
-                                          Discount
-                                        </Button>
-                                      )}
-                                    </TableCell>
-                                  </TableRow>
-                                ))}
-                              </TableBody>
-                            </Table>
-                          </TableContainer>
-                        </Paper>
-                      </Grid>
-
-                      {/* DETAILS & AI RECEIVABLES PANEL */}
-                      <Grid item xs={12} md={5}>
-                        <Grid container spacing={3}>
-                          <Grid item xs={12}>
-                            <Card sx={{ bgcolor: '#121829', border: '1px solid rgba(255,255,255,0.05)' }}>
-                              <CardContent>
-                                <Typography variant="subtitle2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                  <TrendingUp fontSize="small" /> Working Capital Impact
-                                </Typography>
-                                <Typography variant="h5" sx={{ mt: 1 }} color="primary" fontWeight="bold">
-                                  +12.4 Days Reduced
-                                </Typography>
-                                <Typography variant="caption" color="text.secondary">Cash Conversion cycle optimization</Typography>
-                              </CardContent>
-                            </Card>
-                          </Grid>
-                          <Grid item xs={12}>
-                            <Paper sx={{ p: 3, border: '1px solid rgba(66,133,244,0.3)', bgcolor: 'rgba(66,133,244,0.04)' }}>
-                              <Typography variant="subtitle2" color="primary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 1 }}>
-                                <Insights fontSize="small" /> Gemini AI Supply Chain Finance Advisor
-                              </Typography>
-                              <Divider sx={{ my: 1.5 }} />
-                              <Typography variant="body2" color="text.secondary">
-                                "TReDS registry sync completes. Invoices under Tata Motors and Reliance Retail qualify for immediate discounting. Buyer credit scores stand at AA/AAA with average settlement cycles of 45-60 days."
-                              </Typography>
-                            </Paper>
-                          </Grid>
-                        </Grid>
-                      </Grid>
-                    </Grid>
-                  ) : (
-                    <Paper sx={{ p: 4, textAlign: 'center', border: '1px dashed rgba(255,255,255,0.08)' }}>
-                      <ShoppingCart sx={{ fontSize: 40, color: 'text.secondary', mb: 1 }} />
-                      <Typography variant="body2" color="text.secondary">Provide customer ID and Seller PAN to synchronize trade receivables invoices from TReDS registry.</Typography>
-                    </Paper>
-                  )}
-                </Box>
-              ) : (
-                // TAB 1: OCEN & ULI Embedded Credit
-                <Box>
-                  <Grid container spacing={3}>
-                    {/* LEFT PANEL: ELIGIBILITY & DISCOVERY */}
-                    <Grid item xs={12} md={7}>
-                      <Grid container spacing={3}>
-                        
-                        {/* 1. ELIGIBILITY CHECKER */}
-                        <Grid item xs={12}>
-                          <Paper sx={{ p: 3, border: '1px solid rgba(255,255,255,0.05)' }}>
-                            <Typography variant="h6" gutterBottom color="primary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <VerifiedUser /> 1. ULI Consent & Eligibility Check
-                            </Typography>
-                            <Divider sx={{ my: 1.5 }} />
-                            <Grid container spacing={2}>
-                              <Grid item xs={12} sm={4}>
-                                <TextField fullWidth label="Annual Revenue (₹)" value={revenue} onChange={(e) => setRevenue(e.target.value)} />
-                              </Grid>
-                              <Grid item xs={12} sm={4}>
-                                <TextField fullWidth label="Credit Score" value={creditScore} onChange={(e) => setCreditScore(e.target.value)} />
-                              </Grid>
-                              <Grid item xs={12} sm={4}>
-                                <TextField fullWidth label="Loan Request (₹)" value={reqAmount} onChange={(e) => setReqAmount(e.target.value)} />
-                              </Grid>
-                            </Grid>
-                            <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
-                              <Button variant="contained" color="primary" onClick={() => ocen.checkEligibility(parseFloat(revenue), parseInt(creditScore), parseFloat(reqAmount))}>
-                                Verify via ULI Gateway
-                              </Button>
-                              <Button variant="outlined" onClick={ocen.resetCreditPortal}>Reset Portal</Button>
-                            </Box>
-
-                            {ocen.eligibility && (
-                              <Box sx={{ mt: 2.5, p: 2, bgcolor: ocen.eligibility.eligible ? 'rgba(52,168,83,0.08)' : 'rgba(234,67,53,0.08)', border: ocen.eligibility.eligible ? '1px solid #34A853' : '1px solid #EA4335', borderRadius: 2 }}>
-                                <Typography variant="subtitle1" fontWeight="bold" color={ocen.eligibility.eligible ? 'secondary' : 'info'}>
-                                  {ocen.eligibility.eligible ? 'ELIGIBLE' : 'INELIGIBLE'}
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                                  {ocen.eligibility.reason}
-                                </Typography>
-                                {ocen.eligibility.eligible && (
-                                  <Box sx={{ mt: 1 }}>
-                                    <Typography variant="body2" color="text.primary"><strong>Max Offer Ceiling:</strong> {formatCurrency(ocen.eligibility.max_eligible_amount)}</Typography>
-                                    <Typography variant="caption" color="text.secondary"><strong>ULI Ref:</strong> {ocen.eligibility.uli_reference}</Typography>
-                                  </Box>
-                                )}
-                              </Box>
-                            )}
-                          </Paper>
-                        </Grid>
-
-                        {/* 2. LOAN DISCOVERY / APPLICATION */}
-                        {ocen.eligibility?.eligible && (
-                          <Grid item xs={12}>
-                            <Paper sx={{ p: 3, border: '1px solid rgba(255,255,255,0.05)' }}>
-                              <Typography variant="h6" gutterBottom color="primary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <AccountBalance /> 2. OCEN Digital Loan Marketplace Application
-                              </Typography>
-                              <Divider sx={{ my: 1.5 }} />
-                              <Grid container spacing={2}>
-                                <Grid item xs={12} sm={8}>
-                                  <TextField fullWidth label="Lending Purpose" value={loanPurpose} onChange={(e) => setLoanPurpose(e.target.value)} />
-                                </Grid>
-                                <Grid item xs={12} sm={4}>
-                                  <TextField fullWidth label="Tenure (Months)" value={loanTenure} onChange={(e) => setLoanTenure(e.target.value)} />
-                                </Grid>
-                              </Grid>
-                              <Button variant="contained" color="secondary" sx={{ mt: 2 }} onClick={() => ocen.applyLoan(parseFloat(reqAmount), parseInt(loanTenure), loanPurpose)}>
-                                Query Lenders Registry
-                              </Button>
-                            </Paper>
-                          </Grid>
-                        )}
-
-                        {/* 3. OFFERS & COMPARISON */}
-                        {ocen.offers.length > 0 && (
-                          <Grid item xs={12}>
-                            <Paper sx={{ p: 3, border: '1px solid rgba(255,255,255,0.05)' }}>
-                              <Typography variant="h6" gutterBottom color="primary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <LocalOffer /> 3. Received Offers & Comparison Screen
-                              </Typography>
-                              <Divider sx={{ my: 1.5 }} />
-                              <TableContainer>
-                                <Table size="small">
-                                  <TableHead>
-                                    <TableRow>
-                                      <TableCell>Lender</TableCell>
-                                      <TableCell>Amount</TableCell>
-                                      <TableCell>Rate (APR)</TableCell>
-                                      <TableCell>EMI (Monthly)</TableCell>
-                                      <TableCell>Proc. Fee</TableCell>
-                                      <TableCell>Status</TableCell>
-                                      <TableCell>Decision</TableCell>
-                                    </TableRow>
-                                  </TableHead>
-                                  <TableBody>
-                                    {ocen.offers.map((offer) => {
-                                      const isBestRate = offer.id === ocen.bestRateOfferId;
-                                      const isBestAmount = offer.id === ocen.bestAmountOfferId;
-                                      return (
-                                        <TableRow key={offer.id}>
-                                          <TableCell>
-                                            {offer.lender_name}
-                                            {isBestRate && <Chip label="Best Rate" size="small" color="secondary" sx={{ ml: 1, height: 18 }} />}
-                                          </TableCell>
-                                          <TableCell>{formatCurrency(offer.offered_amount)}</TableCell>
-                                          <TableCell>{offer.interest_rate}%</TableCell>
-                                          <TableCell>{formatCurrency(offer.monthly_installment)}</TableCell>
-                                          <TableCell>{formatCurrency(offer.processing_fee)}</TableCell>
-                                          <TableCell>
-                                            <Chip label={offer.status} color={offer.status === 'ACCEPTED' ? 'success' : 'primary'} size="small" />
-                                          </TableCell>
-                                          <TableCell>
-                                            {ocen.application?.status === 'OFFERS_GENERATED' && (
-                                              <Button size="small" variant="outlined" onClick={() => ocen.acceptOffer(offer.id)}>
-                                                Select
-                                              </Button>
-                                            )}
-                                          </TableCell>
-                                        </TableRow>
-                                      );
-                                    })}
-                                  </TableBody>
-                                </Table>
-                              </TableContainer>
-                              {ocen.comparisonNotes && (
-                                <Box sx={{ mt: 2, p: 1.5, bgcolor: '#121829', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 1.5 }}>
-                                  <Typography variant="body2" color="text.secondary">
-                                    <strong>Engine Analyser:</strong> {ocen.comparisonNotes}
-                                  </Typography>
-                                </Box>
-                              )}
-                            </Paper>
-                          </Grid>
-                        )}
-
-                      </Grid>
-                    </Grid>
-
-                    {/* RIGHT PANEL: TIMELINE & AI ASSISTANT */}
-                    <Grid item xs={12} md={5}>
-                      <Grid container spacing={3}>
-                        
-                        {/* 1. AI LENDING ASSISTANT PANEL */}
-                        {ocen.aiAdvisor && (
-                          <Grid item xs={12}>
-                            <Paper sx={{ p: 3, border: '1px solid rgba(66,133,244,0.4)', bgcolor: 'rgba(66,133,244,0.04)' }}>
-                              <Typography variant="subtitle2" color="primary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 1 }}>
-                                <SmartToy fontSize="small" /> Gemini ULI Credit Intelligence
-                              </Typography>
-                              <Divider sx={{ my: 1.5 }} />
-                              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                                <Typography variant="body2" color="text.secondary">Suitability Index Score</Typography>
-                                <Typography variant="body2" fontWeight="bold" color="secondary">{ocen.aiAdvisor.suitability_score}%</Typography>
-                              </Box>
-                              <Typography variant="body2" fontWeight="bold" color="text.primary" sx={{ mb: 1 }}>
-                                {ocen.aiAdvisor.dynamic_summary}
-                              </Typography>
-                              <Typography variant="body2" color="text.secondary" style={{ whiteSpace: 'pre-line' }}>
-                                {ocen.aiAdvisor.breakdown}
-                              </Typography>
-                            </Paper>
-                          </Grid>
-                        )}
-
-                        {/* 2. LOAN JOURNEY TIMELINE */}
-                        {ocen.application && (
-                          <Grid item xs={12}>
-                            <Paper sx={{ p: 3, border: '1px solid rgba(255,255,255,0.05)' }}>
-                              <Typography variant="h6" color="primary" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <Timeline /> Loan Application Status Tracker
-                              </Typography>
-                              <Divider sx={{ my: 1.5 }} />
-                              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                  <Typography variant="body2"><strong>ULI Ref:</strong> {ocen.application.uli_reference}</Typography>
-                                  <Chip label={ocen.application.status} color="success" size="small" />
-                                </Box>
-                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, pl: 1, borderLeft: '2px solid rgba(255,255,255,0.1)' }}>
-                                  <Box sx={{ opacity: ocen.application.status !== 'APPLIED' ? 1 : 0.5 }}>
-                                    <Typography variant="body2">✓ <strong>ULI Reference Initialized</strong></Typography>
-                                  </Box>
-                                  <Box sx={{ opacity: ['OFFERS_GENERATED', 'ACCEPTED', 'DISBURSED'].includes(ocen.application.status) ? 1 : 0.5 }}>
-                                    <Typography variant="body2">✓ <strong>OCEN Market Offers Fetched</strong></Typography>
-                                  </Box>
-                                  <Box sx={{ opacity: ['ACCEPTED', 'DISBURSED'].includes(ocen.application.status) ? 1 : 0.5 }}>
-                                    <Typography variant="body2">✓ <strong>Offer Accepted by Borrower</strong></Typography>
-                                  </Box>
-                                  <Box sx={{ opacity: ocen.application.status === 'DISBURSED' ? 1 : 0.5 }}>
-                                    <Typography variant="body2">✓ <strong>Funds Disbursed to Bank Account</strong></Typography>
-                                  </Box>
-                                </Box>
-
-                                {ocen.application.status === 'ACCEPTED' && (
-                                  <Button fullWidth variant="contained" color="secondary" onClick={ocen.disburseLoan}>
-                                    Disburse Loan Instantly
-                                  </Button>
-                                )}
-                              </Box>
-                            </Paper>
-                          </Grid>
-                        )}
-
-                        {/* 3. PARTNERS & LENDERS REGISTRY */}
-                        <Grid item xs={12}>
-                          <Paper sx={{ p: 3, border: '1px solid rgba(255,255,255,0.05)' }}>
-                            <Typography variant="h6" color="primary" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <Hub /> OCEN Network Partner Directory
-                            </Typography>
-                            <Divider sx={{ my: 1.5 }} />
-                            <Grid container spacing={2}>
-                              <Grid item xs={6}>
-                                <Typography variant="subtitle2" color="primary">Active Lenders</Typography>
-                                <List dense>
-                                  {ocen.lenders.map(l => (
-                                    <ListItem key={l.lender_id} disableGutters>
-                                      <ListItemText primary={l.name} secondary={`${l.lender_type} | base: ${l.base_interest_rate}%`} />
-                                    </ListItem>
-                                  ))}
-                                </List>
-                              </Grid>
-                              <Grid item xs={6}>
-                                <Typography variant="subtitle2" color="primary">Partners (LSPs)</Typography>
-                                <List dense>
-                                  {ocen.partners.map(p => (
-                                    <ListItem key={p.partner_id} disableGutters>
-                                      <ListItemText primary={p.name} secondary={p.partner_type} />
-                                    </ListItem>
-                                  ))}
-                                </List>
-                              </Grid>
-                            </Grid>
-                          </Paper>
-                        </Grid>
-
-                        {/* 4. AUDIT TRAIL LOGS */}
-                        <Grid item xs={12}>
-                          <Paper sx={{ p: 3, border: '1px solid rgba(255,255,255,0.05)', maxHeight: 250, overflowY: 'auto' }}>
-                            <Typography variant="h6" color="primary" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <History /> Lending Gateway Audit Logs
-                            </Typography>
-                            <Divider sx={{ my: 1.5 }} />
-                            <List dense>
-                              {ocen.auditLogs.map(log => (
-                                <ListItem key={log.id} disableGutters>
-                                  <ListItemText primary={`[${log.event_type}] ${log.message}`} secondary={`${new Date(log.timestamp).toLocaleString()} | Actor: ${log.actor}`} />
-                                </ListItem>
-                              ))}
-                            </List>
-                          </Paper>
-                        </Grid>
-
-                      </Grid>
-                    </Grid>
-                  </Grid>
-                </Box>
-              )}
-
             </Box>
-          )}
 
-        </Container>
-      </Box>
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="caption" color="text.secondary">Progress completeness</Typography>
+              <LinearProgress 
+                variant="determinate" 
+                value={workflowStatus === 'COMPLETED' ? 100 : workflowStatus === 'PENDING' ? 0 : Math.round((activeStep / workflowSteps.length) * 100)} 
+                sx={{ mt: 1, height: 6, borderRadius: 3 }}
+              />
+            </Box>
+
+            <Stack spacing={2}>
+              <Button 
+                variant="contained" 
+                fullWidth 
+                startIcon={<PlayArrow />}
+                onClick={triggerWorkflow}
+                disabled={workflowStatus === 'RUNNING'}
+              >
+                Start Workflow
+              </Button>
+              <Button 
+                variant="outlined" 
+                fullWidth 
+                color="error"
+                startIcon={<Stop />}
+                onClick={cancelWorkflow}
+                disabled={workflowStatus !== 'RUNNING'}
+              >
+                Cancel Execution
+              </Button>
+            </Stack>
+          </Paper>
+        </Grid>
+
+        {/* Workflow Timeline map */}
+        <Grid item xs={12} md={8}>
+          <Paper sx={{ p: 3, border: '1px solid rgba(255,255,255,0.06)', borderRadius: 2 }}>
+            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+              Visual Journey Pipeline
+            </Typography>
+            <Divider sx={{ my: 1.5 }} />
+            <Box sx={{ height: 320, overflowY: 'auto', pr: 1 }}>
+              <Stepper activeStep={activeStep} orientation="vertical">
+                {workflowSteps.map((step, index) => (
+                  <Step key={step.name}>
+                    <StepLabel
+                      optional={
+                        <Typography variant="caption" color="text.secondary">
+                          {step.desc}
+                        </Typography>
+                      }
+                    >
+                      <Typography variant="body2" fontWeight="600">{step.name}</Typography>
+                    </StepLabel>
+                  </Step>
+                ))}
+              </Stepper>
+            </Box>
+          </Paper>
+        </Grid>
+
+        {/* Execution logs */}
+        <Grid item xs={12}>
+          <Paper sx={{ p: 3, border: '1px solid rgba(255,255,255,0.06)', borderRadius: 2 }}>
+            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+              Real-time Underwriting Execution Logs
+            </Typography>
+            <Divider sx={{ my: 1.5 }} />
+            <Box sx={{ maxHeight: 240, overflowY: 'auto', bgcolor: 'rgba(0,0,0,0.2)', p: 2, borderRadius: 1.5, fontFamily: 'monospace', fontSize: '0.85rem' }}>
+              {logs.length === 0 ? (
+                <Typography variant="body2" color="text.secondary">No active logs. Click "Start Workflow" to execute pipeline.</Typography>
+              ) : (
+                logs.map((l, idx) => (
+                  <Box key={idx} sx={{ display: 'flex', gap: 2, mb: 1 }}>
+                    <Typography color="text.secondary">[{l.time}]</Typography>
+                    <Typography color={l.status === 'SUCCESS' ? 'success.main' : l.status === 'ERROR' ? 'error.main' : 'primary.main'}>
+                      {l.msg}
+                    </Typography>
+                  </Box>
+                ))
+              )}
+            </Box>
+          </Paper>
+        </Grid>
+      </Grid>
+    </Box>
+  );
+};
+
+// Event Engine Dashboard (Reports View)
+const EventEnginePage = () => {
+  const [isPlaying, setIsPlaying] = React.useState(true);
+  const [events, setEvents] = React.useState([
+    { id: 'evt_a1b2c3d4', type: 'Customer Registered', time: '17:02:12', target: 'Priya Textile Works', status: 'SUCCESS' },
+    { id: 'evt_b2c3d4e5', type: 'GST Return Filed', time: '17:02:15', target: 'Priya Textile Works', status: 'SUCCESS' },
+    { id: 'evt_c3d4e5f6', type: 'Financial Health Updated', time: '17:02:16', target: 'Score: 85/100', status: 'SUCCESS' },
+    { id: 'evt_d4e5f6g7', type: 'Credit Score Updated', time: '17:02:18', target: 'Credit Score: 780', status: 'SUCCESS' },
+    { id: 'evt_e5f6g7h8', type: 'OCEN Offers Generated', time: '17:02:22', target: '4 active offers', status: 'SUCCESS' }
+  ]);
+
+  const triggerReplay = () => {
+    uiStore.getState().showNotification('Replaying simulation events in queue...', 'info');
+  };
+
+  const activeRules = [
+    { cond: 'If GST filing delayed > 90 days', action: 'Increase Risk Score', level: 'CRITICAL' },
+    { cond: 'If EMI missed twice', action: 'Reduce Credit Score (set 300)', level: 'HIGH' },
+    { cond: 'If Revenue grows 20%', action: 'Improve Financial Health metric', level: 'INFO' }
+  ];
+
+  return (
+    <Box>
+      <Typography variant="h5" color="text.primary" fontWeight="bold" sx={{ mb: 1 }}>
+        Enterprise Business Event Engine Monitor
+      </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
+        Chronological audit trailing, dynamic propagation graphs, and transactional rules execution telemetry.
+      </Typography>
+
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid item xs={12} sm={4}>
+          <MetricCard title="Total Events Processed" value="12,452" trend="Optimal" icon={<ListAlt />} />
+        </Grid>
+        <Grid item xs={12} sm={4}>
+          <MetricCard title="Propagation Speed" value="0.12 ms" trend="Fast" icon={<Speed />} />
+        </Grid>
+        <Grid item xs={12} sm={4}>
+          <MetricCard title="Active Rules Loaded" value="3 items" trend="Active" icon={<Memory />} />
+        </Grid>
+      </Grid>
+
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={7}>
+          <Paper sx={{ p: 3, border: '1px solid rgba(255,255,255,0.06)', borderRadius: 2 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+              <Typography variant="subtitle1" fontWeight="bold">Live Event Log Feed</Typography>
+              <Stack direction="row" spacing={1}>
+                <IconButton size="small" onClick={() => setIsPlaying(!isPlaying)}>
+                  {isPlaying ? <Pause /> : <PlayArrow />}
+                </IconButton>
+                <IconButton size="small" onClick={triggerReplay}>
+                  <Refresh />
+                </IconButton>
+              </Stack>
+            </Box>
+            <Divider sx={{ mb: 2 }} />
+
+            <TableContainer>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Time</TableCell>
+                    <TableCell>Event Type</TableCell>
+                    <TableCell>Details / Target</TableCell>
+                    <TableCell>Status</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {events.map((evt) => (
+                    <TableRow key={evt.id}>
+                      <TableCell>{evt.time}</TableCell>
+                      <TableCell><Typography variant="body2" fontWeight="600">{evt.type}</Typography></TableCell>
+                      <TableCell>{evt.target}</TableCell>
+                      <TableCell><StatusBadge status={evt.status} /></TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Paper>
+        </Grid>
+
+        <Grid item xs={12} md={5}>
+          <Paper sx={{ p: 3, border: '1px solid rgba(255,255,255,0.06)', borderRadius: 2 }}>
+            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>Active Business Rules Engine</Typography>
+            <Divider sx={{ my: 1.5 }} />
+            <List>
+              {activeRules.map((r, idx) => (
+                <ListItem key={idx} disableGutters sx={{ alignItems: 'flex-start', mb: 1.5 }}>
+                  <ListItemIcon sx={{ minWidth: 32, mt: 0.5 }}>
+                    <CheckCircle color="primary" fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText 
+                    primary={r.cond} 
+                    secondary={`Action: ${r.action} | Alert Priority: ${r.level}`}
+                    primaryTypographyProps={{ fontSize: '0.875rem', fontWeight: '600' }}
+                    secondaryTypographyProps={{ fontSize: '0.75rem' }}
+                  />
+                </ListItem>
+              ))}
+            </List>
+          </Paper>
+        </Grid>
+      </Grid>
+    </Box>
+  );
+};
+
+// Profile Page Component
+const ProfilePage = () => {
+  const ui = useStore(uiStore);
+  const user = ui.user;
+  if (!user) return null;
+
+  return (
+    <Box>
+      <Typography variant="h5" color="text.primary" fontWeight="bold" sx={{ mb: 1 }}>
+        User Identity Profile
+      </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
+        Secure authentication details and assigned RBAC permission credentials.
+      </Typography>
+
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={5}>
+          <Paper sx={{ p: 4, textLabel: 'center', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <Avatar sx={{ width: 80, height: 80, bgcolor: 'primary.main', mb: 2, fontSize: '2rem' }}>
+              {user.full_name[0]}
+            </Avatar>
+            <Typography variant="h6" fontWeight="bold">{user.full_name}</Typography>
+            <Typography variant="body2" color="primary" fontWeight="600" sx={{ mb: 1 }}>{user.role}</Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ mb: 3 }}>{user.email || 'No email registered'}</Typography>
+            
+            <Divider sx={{ width: '100%', my: 2 }} />
+            
+            <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                <Typography variant="body2" color="text.secondary">Department</Typography>
+                <Typography variant="body2" fontWeight="bold">{user.department}</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                <Typography variant="body2" color="text.secondary">Branch Location</Typography>
+                <Typography variant="body2" fontWeight="bold">{user.branch}</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                <Typography variant="body2" color="text.secondary">Access Status</Typography>
+                <Typography variant="body2" fontWeight="bold" color="success.main">ACTIVE</Typography>
+              </Box>
+            </Box>
+          </Paper>
+        </Grid>
+
+        <Grid item xs={12} md={7}>
+          <Paper sx={{ p: 4, border: '1px solid rgba(255,255,255,0.06)', borderRadius: 2 }}>
+            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+              Assigned Permissions
+            </Typography>
+            <Divider sx={{ my: 1.5 }} />
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+              {user.permissions.map((p) => (
+                <Chip key={p} label={p.replace('_', ' ')} color="primary" size="small" variant="outlined" />
+              ))}
+            </Box>
+          </Paper>
+        </Grid>
+      </Grid>
+    </Box>
+  );
+};
+
+interface PagePlaceholderProps {
+  title: string;
+}
+
+const PagePlaceholder: React.FC<PagePlaceholderProps> = ({ title }) => (
+  <Box>
+    <Typography variant="h5" color="text.primary" fontWeight="bold" sx={{ mb: 1 }}>
+      {title}
+    </Typography>
+    <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
+      Enterprise Module | Fully Integrated Sandbox.
+    </Typography>
+    <Paper sx={{ p: 6, textAlign: 'center', border: '1px dashed rgba(255,255,255,0.08)', borderRadius: 2 }}>
+      <SmartToy sx={{ fontSize: 48, color: 'primary.main', mb: 2, opacity: 0.8 }} />
+      <Typography variant="h6" fontWeight="bold" gutterBottom>
+        Module Sandbox Activated
+      </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 480, mx: 'auto', mb: 3 }}>
+        All API adapters are configured. Click below to synchronize sandbox records.
+      </Typography>
+      <Button variant="contained" size="large" onClick={() => uiStore.getState().showNotification(`${title} synced successfully.`)}>
+        Synchronize Sandbox Data
+      </Button>
+    </Paper>
+  </Box>
+);
+
+// ----------------------------------------------------
+// 5. MAIN APP DESIGN
+// ----------------------------------------------------
+export default function App() {
+  const ui = useStore(uiStore);
+
+  const demoAccounts = [
+    { label: 'Administrator', mobile: '9900112233' },
+    { label: 'Executive', mobile: '9834567890' },
+    { label: 'Relationship Manager', mobile: '9876543210' },
+    { label: 'Trainer', mobile: '9856789012' },
+    { label: 'Demo User', mobile: '9988776655' }
+  ];
+
+  const [mobile, setMobile] = React.useState('9876543210');
+  const [password, setPassword] = React.useState('AarohanPass123!');
+
+  const activeTheme = React.useMemo(() => {
+    return createTheme({
+      palette: {
+        mode: ui.themeMode,
+        primary: { main: '#4285F4' },
+        secondary: { main: '#34A853' },
+        background: {
+          default: ui.themeMode === 'dark' ? '#070a13' : '#f8fafd',
+          paper: ui.themeMode === 'dark' ? '#0f1628' : '#ffffff'
+        },
+        text: {
+          primary: ui.themeMode === 'dark' ? '#F1F5F9' : '#0f172a',
+          secondary: ui.themeMode === 'dark' ? '#94A3B8' : '#475569'
+        }
+      },
+      typography: {
+        fontFamily: 'Outfit, Inter, sans-serif',
+        h5: { fontWeight: 700 },
+        h6: { fontWeight: 600 }
+      },
+      shape: { borderRadius: 8 }
+    });
+  }, [ui.themeMode]);
+
+  const navItems = [
+    { name: 'Dashboard', icon: <DashboardIcon />, permission: 'dashboard' },
+    { name: 'Customer Onboarding', icon: <People />, permission: 'customer_management' },
+    { name: 'CKYC', icon: <PersonSearch />, permission: 'ckyc' },
+    { name: 'GST Analysis', icon: <Receipt />, permission: 'gst' },
+    { name: 'Account Aggregator', icon: <AccountBalance />, permission: 'account_aggregator' },
+    { name: 'EPFO', icon: <WorkOutline />, permission: 'epfo' },
+    { name: 'MCA', icon: <Business />, permission: 'mca' },
+    { name: 'Financial Health Card', icon: <Assessment />, permission: 'financial_health_card' },
+    { name: 'AI Credit Engine', icon: <Memory />, permission: 'credit_engine' },
+    { name: 'CAM Generator', icon: <Description />, permission: 'cam' },
+    { name: 'OCEN Marketplace', icon: <ShoppingCart />, permission: 'ocen' },
+    { name: 'RBI Fraud Registry', icon: <Gavel />, permission: 'rbi_fraud' },
+    { name: 'Executive Dashboard', icon: <BarChart />, permission: 'reports' },
+    { name: 'Enterprise Simulation Engine', icon: <SettingsInputComponent />, permission: 'simulation_engine' },
+    { name: 'Reports', icon: <FolderZip />, permission: 'reports' },
+    { name: 'Administration', icon: <SupervisorAccount />, permission: 'administration' },
+    { name: 'Settings', icon: <SettingsIcon />, permission: 'settings' }
+  ];
+
+  const filteredNavItems = React.useMemo(() => {
+    if (!ui.user) return [];
+    return navItems.filter((item) => ui.user?.permissions.includes(item.permission));
+  }, [ui.user]);
+
+  const handleQuickLogin = (m: string) => {
+    setMobile(m);
+    setPassword('AarohanPass123!');
+    ui.login(m, 'AarohanPass123!');
+  };
+
+  return (
+    <ThemeProvider theme={activeTheme}>
+      <CssBaseline />
+
+      {!ui.isAuthenticated ? (
+        <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyItems: 'center', bgcolor: 'background.default', py: 6 }}>
+          <Container maxWidth="xs">
+            <Paper elevation={4} sx={{ p: 4, border: '1px solid rgba(255,255,255,0.06)', borderRadius: 3 }}>
+              
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3 }}>
+                <Avatar sx={{ bgcolor: 'primary.main', width: 44, height: 44, mb: 1 }}>
+                  <VpnKey />
+                </Avatar>
+                <Typography variant="h5" fontWeight="bold">
+                  Identity Portal Login
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  AAROHAN Digital Underwriting Platform
+                </Typography>
+              </Box>
+
+              <Stack spacing={2} sx={{ mb: 3 }}>
+                <TextField
+                  fullWidth
+                  label="Registered Mobile Number"
+                  value={mobile}
+                  onChange={(e) => setMobile(e.target.value)}
+                  placeholder="10-digit mobile number"
+                />
+                <TextField
+                  fullWidth
+                  type="password"
+                  label="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <Button
+                  fullWidth
+                  size="large"
+                  variant="contained"
+                  disabled={ui.isLoading}
+                  onClick={() => ui.login(mobile, password)}
+                >
+                  {ui.isLoading ? 'Verifying...' : 'Sign In'}
+                </Button>
+              </Stack>
+
+              <Divider sx={{ my: 2.5 }}>
+                <Typography variant="caption" color="text.secondary">
+                  DEMO PITCH QUICK LOGIN
+                </Typography>
+              </Divider>
+
+              <Grid container spacing={1}>
+                {demoAccounts.map((acc) => (
+                  <Grid item xs={6} key={acc.label}>
+                    <Button
+                      fullWidth
+                      size="small"
+                      variant="outlined"
+                      onClick={() => handleQuickLogin(acc.mobile)}
+                      sx={{ fontSize: '0.75rem', py: 1 }}
+                    >
+                      {acc.label}
+                    </Button>
+                  </Grid>
+                ))}
+              </Grid>
+
+            </Paper>
+          </Container>
+        </Box>
+      ) : (
+        <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
+          
+          <Drawer
+            variant="permanent"
+            sx={{
+              width: 260,
+              flexShrink: 0,
+              '& .MuiDrawer-paper': {
+                width: 260,
+                boxSizing: 'border-box',
+                bgcolor: 'background.paper',
+                borderRight: '1px solid rgba(255,255,255,0.06)'
+              }
+            }}
+          >
+            <Box sx={{ p: 3, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <Avatar sx={{ bgcolor: 'primary.main', width: 36, height: 36 }}>
+                <DashboardIcon />
+              </Avatar>
+              <Box>
+                <Typography variant="subtitle1" fontWeight="bold" color="text.primary">
+                  AAROHAN
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Digital twin Sandbox
+                </Typography>
+              </Box>
+            </Box>
+            <Divider sx={{ opacity: 0.1 }} />
+
+            <List sx={{ px: 2, py: 2, overflowY: 'auto' }}>
+              {filteredNavItems.map((item) => (
+                <ListItem key={item.name} disablePadding sx={{ mb: 0.5 }}>
+                  <ListItemButton
+                    selected={ui.activePage === item.name}
+                    onClick={() => ui.setActivePage(item.name)}
+                    sx={{
+                      borderRadius: 2,
+                      '&.Mui-selected': {
+                        bgcolor: 'rgba(66, 133, 244, 0.12)',
+                        color: 'primary.main',
+                        '& .MuiListItemIcon-root': { color: 'primary.main' }
+                      }
+                    }}
+                  >
+                    <ListItemIcon sx={{ minWidth: 40, color: 'text.secondary' }}>
+                      {item.icon}
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={item.name}
+                      primaryTypographyProps={{ fontSize: '0.875rem', fontWeight: ui.activePage === item.name ? '600' : '500' }}
+                    />
+                  </ListItemButton>
+                </ListItem>
+              ))}
+            </List>
+          </Drawer>
+
+          <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+            
+            <AppBar
+              position="static"
+              color="transparent"
+              elevation={0}
+              sx={{ borderBottom: '1px solid rgba(255,255,255,0.06)', bgcolor: 'background.paper' }}
+            >
+              <Toolbar sx={{ justifyContent: 'space-between', px: 3 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Typography variant="subtitle1" fontWeight="bold">
+                    {ui.activePage}
+                  </Typography>
+                  <Chip label={`Profile: ${ui.user?.role}`} color="secondary" size="small" variant="outlined" />
+                </Box>
+
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <IconButton onClick={ui.toggleTheme} color="inherit">
+                    {ui.themeMode === 'light' ? <Brightness4 /> : <Brightness7 />}
+                  </IconButton>
+                  <IconButton color="inherit">
+                    <Notifications />
+                  </IconButton>
+                  <Divider orientation="vertical" flexItem sx={{ mx: 1, opacity: 0.1 }} />
+                  
+                  <Box 
+                    sx={{ display: 'flex', alignItems: 'center', gap: 1, cursor: 'pointer' }}
+                    onClick={() => ui.setActivePage('Profile')}
+                  >
+                    <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.85rem' }}>
+                      {ui.user?.full_name[0]}
+                    </Avatar>
+                    <Typography variant="body2" fontWeight="500" sx={{ display: { xs: 'none', sm: 'block' } }}>
+                      {ui.user?.full_name}
+                    </Typography>
+                  </Box>
+
+                  <IconButton onClick={ui.logout} color="inherit" sx={{ ml: 1 }}>
+                    <Logout />
+                  </IconButton>
+                </Box>
+              </Toolbar>
+            </AppBar>
+
+            <Box sx={{ flexGrow: 1, p: 4 }}>
+              <Container maxWidth="xl" disableGutters>
+                {ui.activePage === 'Dashboard' ? (
+                  <DashboardPage />
+                ) : ui.activePage === 'Profile' ? (
+                  <ProfilePage />
+                ) : ui.activePage === 'Enterprise Simulation Engine' ? (
+                  <SimulationPage />
+                ) : ui.activePage === 'Reports' ? (
+                  <EventEnginePage />
+                ) : ui.activePage === 'Customer Onboarding' ? (
+                  <CustomerOnboardingPage />
+                ) : ui.activePage === 'CKYC' ? (
+                  <CKYCPage />
+                ) : ui.activePage === 'GST Analysis' ? (
+                  <GSTPage />
+                ) : ui.activePage === 'Account Aggregator' ? (
+                  <AAPage />
+                ) : ui.activePage === 'EPFO' ? (
+                  <EPFOPage />
+                ) : ui.activePage === 'MCA' ? (
+                  <MCAPage />
+                ) : ui.activePage === 'CAM Generator' ? (
+                  <CAMPage />
+                ) : ui.activePage === 'Executive Dashboard' ? (
+                  <ExecutiveCommandCenterPage />
+                ) : (
+                  <PagePlaceholder title={ui.activePage} />
+                )}
+              </Container>
+            </Box>
+
+            <Box sx={{ py: 3, borderTop: '1px solid rgba(255,255,255,0.06)', textAlign: 'center', bgcolor: 'background.paper' }}>
+              <Typography variant="caption" color="text.secondary">
+                Project AAROHAN Digital Underwriting Platform v1.0.0 (GA) | Powered by Google Cloud
+              </Typography>
+            </Box>
+
+          </Box>
+        </Box>
+      )}
+
+      {ui.notification && (
+        <Snackbar
+          open={ui.notification.open}
+          autoHideDuration={4000}
+          onClose={ui.closeNotification}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        >
+          <Alert onClose={ui.closeNotification} severity={ui.notification.severity} sx={{ width: '100%' }}>
+            {ui.notification.message}
+          </Alert>
+        </Snackbar>
+      )}
+
     </ThemeProvider>
   );
 }

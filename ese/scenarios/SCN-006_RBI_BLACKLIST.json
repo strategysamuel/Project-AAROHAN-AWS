@@ -1,0 +1,14 @@
+{
+  "scenario_id": "SCN-006",
+  "scenario_name": "RBI_BLACKLIST",
+  "description": "Critical security violation scenario. PAN matches entry in RBI Fraud Registry.",
+  "gst_compliance": "COMPLIANT",
+  "gst_revenue_multiplier": 1.0,
+  "cash_flow_stability": "STRONG",
+  "repayment_history": "CLEAN",
+  "rbi_fraud_status": "BLACKLISTED",
+  "epfo_compliance": "COMPLIANT",
+  "mca_status": "ACTIVE_COMPLIANT",
+  "expected_credit_outcome": "REJECTED",
+  "explainability_tags": ["RBI_FRAUD_BLACKLIST", "POLICY_VIOLATION"]
+}

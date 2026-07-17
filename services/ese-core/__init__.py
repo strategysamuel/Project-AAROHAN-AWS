@@ -1,0 +1,1 @@
+# ESE-Core package initialization

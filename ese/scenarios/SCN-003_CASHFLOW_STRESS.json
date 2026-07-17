@@ -1,0 +1,14 @@
+{
+  "scenario_id": "SCN-003",
+  "scenario_name": "CASHFLOW_STRESS",
+  "description": "Stable business experiencing severe cash flow depletion and low EOD balances.",
+  "gst_compliance": "COMPLIANT",
+  "gst_revenue_multiplier": 0.7,
+  "cash_flow_stability": "WEAK",
+  "repayment_history": "STRESSED",
+  "rbi_fraud_status": "CLEAN",
+  "epfo_compliance": "COMPLIANT",
+  "mca_status": "ACTIVE_COMPLIANT",
+  "expected_credit_outcome": "MANUAL_REVIEW",
+  "explainability_tags": ["LOW_EOD_BALANCE", "DSCR_ALERT"]
+}

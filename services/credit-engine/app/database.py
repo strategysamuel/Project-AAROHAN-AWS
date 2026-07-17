@@ -22,6 +22,22 @@ def get_db():
 def init_db():
     try:
         logger.info("Initializing database tables for credit-engine...")
+        from sqlalchemy import inspect
+        inspector = inspect(engine)
+        tables_to_drop = []
+        
+        # We need to drop these tables to recreate them with the correct columns
+        if "ai_credit_decisions" in inspector.get_table_names():
+            tables_to_drop.append(Base.metadata.tables["ai_credit_decisions"])
+        if "human_approval_logs" in inspector.get_table_names():
+            tables_to_drop.append(Base.metadata.tables["human_approval_logs"])
+        if "credit_engine_config" in inspector.get_table_names():
+            tables_to_drop.append(Base.metadata.tables["credit_engine_config"])
+            
+        if tables_to_drop:
+            logger.info("Dropping existing credit-engine tables to update column schema...")
+            Base.metadata.drop_all(bind=engine, tables=tables_to_drop)
+            
         Base.metadata.create_all(bind=engine)
         logger.info("Database initialized successfully.")
     except Exception as e:

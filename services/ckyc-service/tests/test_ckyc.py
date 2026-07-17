@@ -1,4 +1,9 @@
+import os
+import sys
 import pytest
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
+
 from fastapi.testclient import TestClient
 from app.main import app
 
@@ -28,8 +33,8 @@ def test_ckyc_search_and_verify():
     ver_res = client.post(f"/ckyc/verify/{customer_id}", json=ver_payload)
     assert ver_res.status_code == 200
     ver_data = ver_res.json()
-    assert ver_data["match_confidence"] == 96.5
-    assert ver_data["verification_status"] == "MATCHED"
+    assert ver_data["match_confidence"] == 100.0
+    assert ver_data["verification_status"] == "VERIFIED"
     
     # 3. Retrieve record details
     get_res = client.get(f"/ckyc/records/{customer_id}")

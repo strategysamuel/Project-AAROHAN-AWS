@@ -1,4 +1,9 @@
+import os
+import sys
 import pytest
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
+
 from fastapi.testclient import TestClient
 from app.main import app
 
@@ -31,7 +36,7 @@ def test_aa_full_flow():
     assert link_res.status_code == 200
     
     # 3. Synchronize statements and calculate analytics
-    sync_res = client.post(f"/aa/sync/{customer_id}", json={"consent_id": 42})
+    sync_res = client.post(f"/aa/sync/{customer_id}", json={"consent_id": "consent_art_12345"})
     assert sync_res.status_code == 200
     sync_data = sync_res.json()
     
