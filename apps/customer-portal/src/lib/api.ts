@@ -23,11 +23,30 @@ export function apiUrl(path: string): string {
   }
 
   const normalizedBaseUrl = apiBaseUrl.replace(/\/$/, '');
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+
+  // Local development port mapping (bypasses missing local API gateway)
+  if (import.meta.env.DEV && normalizedBaseUrl === 'http://localhost:9000') {
+    if (normalizedPath.startsWith('/ese')) return `http://localhost:9090${normalizedPath}`;
+    if (normalizedPath.startsWith('/exec')) return `http://localhost:9009${normalizedPath}`;
+    if (normalizedPath.startsWith('/rm')) return `http://localhost:9010${normalizedPath}`;
+    if (normalizedPath.startsWith('/customers')) return `http://localhost:9001${normalizedPath}`;
+    if (normalizedPath.startsWith('/consents')) return `http://localhost:9002${normalizedPath}`;
+    if (normalizedPath.startsWith('/gst')) return `http://localhost:9003${normalizedPath}`;
+    if (normalizedPath.startsWith('/aa')) return `http://localhost:9004${normalizedPath}`;
+    if (normalizedPath.startsWith('/fhc')) return `http://localhost:9005${normalizedPath}`;
+    if (normalizedPath.startsWith('/credit')) return `http://localhost:9006${normalizedPath}`;
+    if (normalizedPath.startsWith('/cam')) return `http://localhost:9007${normalizedPath}`;
+    if (normalizedPath.startsWith('/ocen')) return `http://localhost:9008${normalizedPath}`;
+    if (normalizedPath.startsWith('/ckyc')) return `http://localhost:9011${normalizedPath}`;
+    if (normalizedPath.startsWith('/mca')) return `http://localhost:9012${normalizedPath}`;
+    if (normalizedPath.startsWith('/epfo')) return `http://localhost:9013${normalizedPath}`;
+  }
+
   if (path === '' || path === '/') {
     return normalizedBaseUrl;
   }
 
-  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
   return `${normalizedBaseUrl}${normalizedPath}`;
 }
 
