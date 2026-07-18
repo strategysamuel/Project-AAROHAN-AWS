@@ -900,7 +900,7 @@ const maybeEnhanceWithModel = async (context: CopilotContext, query: string, bas
     `Structured evidence:`,
     ...evidence.map((item) => `- ${item}`),
     `Base reply: ${baseReply}`,
-    `Return a concise assistant reply that preserves the factual content and mentions only the available evidence.`
+    `If the user asks a general banking question, answer it directly and professionally. If the question relates to the app data, use the Structured evidence and Base reply to form your answer. Do NOT restrict your answers to just the Base reply.`
   ].join('\n');
 
   try {
