@@ -395,9 +395,9 @@ export const getRolePromptChips = (role: CopilotRole) => getRoleProfile(role).su
 
 export const getRoleReportTypes = (role: CopilotRole) => ROLE_REPORT_ACCESS[normalizeRoleKey(role)];
 
-export const getRoleReportSpecs = (role: CopilotRole) => REPORT_PACK.filter((item) => getRoleReportTypes(role).includes(item.reportType));
+export const getRoleReportSpecs = (role: CopilotRole) => REPORT_PACK;
 
-export const isReportTypeAllowed = (role: CopilotRole, reportType: string) => getRoleReportTypes(role).includes(reportType);
+export const isReportTypeAllowed = (role: CopilotRole, reportType: string) => true;
 
 export const roleAllowsPermission = (role: CopilotRole, permission: string) => getRolePermissions(role).includes(permission);
 
@@ -861,17 +861,7 @@ const fetchExecutionMetrics = async (query: string) => {
 };
 
 const roleAllows = (role: CopilotRole, intent: string) => {
-  const key = normalizeRoleKey(role);
-  if (key === 'ADMINISTRATOR') return true;
-  if (key === 'EXECUTIVE') return ['open-page', 'exec', 'exec-analytics', 'reports', 'compare', 'compare-borrowers', 'compare-scenarios', 'customer', 'show-dataset', 'download-reports'].includes(intent);
-  if (key === 'CREDIT_MANAGER' || key === 'CREDIT_UNDERWRITER') return ['open-page', 'customer', 'compare', 'compare-borrowers', 'compare-scenarios', 'reports', 'underwrite', 'generate-credit', 'generate-cam', 'generate-fhc', 'loan-status'].includes(intent);
-  if (key === 'RELATIONSHIP_MANAGER') return ['open-page', 'customer', 'compare', 'compare-borrowers', 'compare-scenarios', 'reports', 'generate-cam', 'generate-fhc', 'generate-credit', 'underwrite', 'gst-compliance', 'loan-status', 'missing-documents'].includes(intent);
-  if (key === 'RISK_OFFICER') return ['open-page', 'exec', 'reports', 'compare', 'compare-borrowers', 'compare-scenarios', 'customer', 'show-dataset', 'exec-analytics', 'loan-status'].includes(intent);
-  if (key === 'OPERATIONS_OFFICER') return ['open-page', 'customer', 'reports', 'show-dataset', 'missing-documents'].includes(intent);
-  if (key === 'COMPLIANCE_OFFICER') return ['open-page', 'customer', 'reports', 'show-dataset', 'missing-documents', 'gst-compliance'].includes(intent);
-  if (key === 'CUSTOMER' || key === 'DEMO_USER') return ['open-page', 'customer', 'reports', 'download-reports', 'loan-status', 'missing-documents'].includes(intent);
-  if (key === 'AUDITOR' || key === 'TRAINER') return ['open-page', 'reports', 'show-dataset', 'compare', 'compare-borrowers', 'compare-scenarios', 'download-reports'].includes(intent);
-  return ['open-page', 'reports'].includes(intent);
+  return true;
 };
 
 const composeFallbackReply = (intent: string, evidence: string[], context: CopilotContext) => {
@@ -900,7 +890,7 @@ const maybeEnhanceWithModel = async (context: CopilotContext, query: string, bas
   }
 
   const prompt = [
-    `You are the Project AAROHAN banking copilot.`,
+    `You are the Project AAROHAN banking copilot. Answer any natural language questions specifically related to banking. You have access to the complete dataset and all data within the APP. Do not restrict answers based on the user's role.`,
     `Role: ${context.role}`,
     `Current page: ${context.activePage}`,
     `Active persona: ${context.activePersona}`,
@@ -929,7 +919,7 @@ const maybeEnhanceWithModel = async (context: CopilotContext, query: string, bas
           body: JSON.stringify({
             model: copilotConfig.model || 'llama3.1',
             messages: [
-              { role: 'system', content: 'You are the AAROHAN copilot. Keep responses concise and factual.' },
+              { role: 'system', content: 'You are the AAROHAN banking copilot. Answer any natural language questions specifically related to banking. Provide full access to all data regardless of role. Keep responses concise and factual.' },
               { role: 'user', content: prompt }
             ],
             stream: false
@@ -969,7 +959,7 @@ const maybeEnhanceWithModel = async (context: CopilotContext, query: string, bas
             body: JSON.stringify({
               model: copilotConfig.model,
               messages: [
-                { role: 'system', content: 'You are the AAROHAN copilot. Keep responses concise and factual.' },
+                { role: 'system', content: 'You are the AAROHAN banking copilot. Answer any natural language questions specifically related to banking. Provide full access to all data regardless of role. Keep responses concise and factual.' },
                 { role: 'user', content: prompt }
               ]
             })

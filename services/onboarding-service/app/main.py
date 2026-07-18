@@ -281,6 +281,9 @@ PERSONA_TEMPLATES = {
         "pan": "PRXPT0001K",
         "aadhaar_masked": "XXXXXXXX1234",
         "district": "Surat",
+        "address_line1": "123 Textile Market",
+        "state": "Gujarat",
+        "pincode": "395002",
         "persona_name": "Priya Textile Works",
         "business": {
             "trade_name": "Priya Textile Works Pvt Ltd",
@@ -302,6 +305,9 @@ PERSONA_TEMPLATES = {
         "pan": "GRNAG0002B",
         "aadhaar_masked": "XXXXXXXX5678",
         "district": "Nashik",
+        "address_line1": "Plot 45, MIDC Area",
+        "state": "Maharashtra",
+        "pincode": "422007",
         "persona_name": "GreenAgro Cooperative",
         "business": {
             "trade_name": "GreenAgro Cooperative Society",
@@ -323,6 +329,9 @@ PERSONA_TEMPLATES = {
         "pan": "QKLOG0003C",
         "aadhaar_masked": "XXXXXXXX9012",
         "district": "Pune",
+        "address_line1": "Logistics Park, Hinjewadi",
+        "state": "Maharashtra",
+        "pincode": "411057",
         "persona_name": "QuickLogistics Services",
         "business": {
             "trade_name": "Quick Logistics Services Pvt Ltd",

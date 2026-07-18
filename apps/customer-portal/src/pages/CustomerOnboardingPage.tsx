@@ -61,6 +61,9 @@ const PERSONA_FALLBACKS: Record<string, { customer: Partial<CustomerForm>; busin
       pan: 'PRXPT0001K',
       aadhaar_masked: 'XXXXXXXX1234',
       district: 'Surat',
+      address_line1: '123 Textile Market',
+      state: 'Gujarat',
+      pincode: '395002',
     },
     business: {
       trade_name: 'Priya Textile Works Pvt Ltd',
@@ -82,6 +85,9 @@ const PERSONA_FALLBACKS: Record<string, { customer: Partial<CustomerForm>; busin
       pan: 'GRNAG0002B',
       aadhaar_masked: 'XXXXXXXX5678',
       district: 'Nashik',
+      address_line1: 'Plot 45, MIDC Area',
+      state: 'Maharashtra',
+      pincode: '422007',
     },
     business: {
       trade_name: 'GreenAgro Cooperative Society',
@@ -103,6 +109,9 @@ const PERSONA_FALLBACKS: Record<string, { customer: Partial<CustomerForm>; busin
       pan: 'QKLOG0003C',
       aadhaar_masked: 'XXXXXXXX9012',
       district: 'Pune',
+      address_line1: 'Logistics Park, Hinjewadi',
+      state: 'Maharashtra',
+      pincode: '411057',
     },
     business: {
       trade_name: 'Quick Logistics Services Pvt Ltd',
@@ -192,7 +201,9 @@ const CustomerOnboardingPage: React.FC = () => {
         district: p.district ?? '',
         persona_name: personaName,
         onboarding_status: 'DRAFT',
-        address_line1: '', state: '', pincode: ''
+        address_line1: p.address_line1 ?? '', 
+        state: p.state ?? '', 
+        pincode: p.pincode ?? ''
       });
       if (p.business) {
         setBusiness({
