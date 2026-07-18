@@ -57,6 +57,9 @@ def _load_persona_templates() -> dict:
                         "pan": persona.get("pan", ""),
                         "aadhaar_masked": persona.get("aadhaar_masked", ""),
                         "district": persona.get("district", ""),
+                        "address_line1": persona.get("address_line1", ""),
+                        "state": persona.get("state", ""),
+                        "pincode": persona.get("pincode", ""),
                         "persona_name": persona_name,
                         "business": persona.get("business", {}),
                     }

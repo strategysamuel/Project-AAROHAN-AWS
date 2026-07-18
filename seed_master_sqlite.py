@@ -132,6 +132,14 @@ def seed_data():
     pan = "PRXPT0001K"
     print(f"✅ Created Customer! ID: {customer_id} | PAN: {pan}")
 
+    print("\n--- 1.5 Seeding Address ---")
+    cursor.execute("""
+        INSERT OR REPLACE INTO onboarding_addresses (customer_id, address_line1, state, pincode, address_type)
+        VALUES (?, ?, ?, ?, ?)
+    """, (customer_id, "123 Textile Market", "Gujarat", "395002", "OFFICE"))
+    print("✅ Address Seeded")
+
+
     print("\n--- 2. Seeding GST ---")
     cursor.execute("""
         INSERT OR REPLACE INTO gst_profiles (customer_id, gstin, legal_name, registration_date, status, business_constitution)

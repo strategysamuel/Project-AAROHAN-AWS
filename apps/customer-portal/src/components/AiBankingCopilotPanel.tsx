@@ -140,9 +140,8 @@ const AiBankingCopilotPanel: React.FC<Props> = ({
       const stored = window.localStorage.getItem(roleStorageKey);
       if (stored) {
         const parsed = JSON.parse(stored) as CopilotMessage[];
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setMessages(parsed.slice(-20));
-        }
+        // Empty history for every new session as requested
+        // setMessages(parsed.slice(-20));
       }
       const storedVoice = window.localStorage.getItem(voiceStorageKey);
       if (storedVoice != null) {

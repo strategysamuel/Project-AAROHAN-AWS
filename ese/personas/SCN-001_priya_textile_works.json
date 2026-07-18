@@ -12,9 +12,17 @@
   "epfo_status": "GROWING_WORKFORCE",
   "mca_status": "ACTIVE_COMPLIANT",
   "rbi_fraud_status": "CLEAN",
-  "explainability_tags": ["DSCR_OK", "GST_GROWTH_STRONG", "FHC_STRONG"],
+  "explainability_tags": [
+    "DSCR_OK",
+    "GST_GROWTH_STRONG",
+    "FHC_STRONG"
+  ],
   "mudra_eligible": false,
   "scheme_tags": [],
   "kcc_eligible": false,
-  "ecgc_coverage": false
+  "ecgc_coverage": false,
+  "address_line1": "123 Textile Market",
+  "state": "Gujarat",
+  "pincode": "395002",
+  "district": "Surat"
 }
